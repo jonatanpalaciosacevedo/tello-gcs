@@ -8,7 +8,9 @@ import requests
 
 letter = "A"
 
-# path of pytesseract execution folder
+# path of pytesseract execution folder (Change as needed)
+# For windows, the path is usually:
+# r"C:\Users\YOUR_USER\AppData\Local\Tesseract-OCR\tesseract.exe"
 pytesseract.pytesseract.tesseract_cmd = r'/usr/local/bin/tesseract'
 
 # Replace the below URL with your own. Make sure to add "/shot.jpg" at last.
