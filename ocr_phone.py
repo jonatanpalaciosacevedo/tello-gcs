@@ -5,6 +5,14 @@ import time
 import cv2
 import pytesseract
 import requests
+from djitellopy import tello
+
+# To test with drone add:
+# drone = tello.Tello()
+# drone.connect()
+# print(drone.get_battery())
+# drone.streamon()  # turn on camera
+# time.sleep(2)
 
 letter = "A"
 
@@ -37,10 +45,15 @@ cntr = 0
 
 # loop over frames from the video stream
 while True:
+    # Phone camera with IP Camera
     img_resp = requests.get(url)
     img_arr = np.array(bytearray(img_resp.content), dtype=np.uint8)
     img = cv2.imdecode(img_arr, -1)
     orig = imutils.resize(img, width=1000, height=1800)
+
+    # Drone camera
+    # orig = drone.get_frame_read().frame
+
     # grab the next frame and handle if we are reading from either
     # a webcam or a video file
     cntr = cntr + 1
