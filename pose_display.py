@@ -7,7 +7,7 @@ import numpy as np
 mp_drawing = mp.solutions.drawing_utils  # Drawing helpers
 mp_holistic = mp.solutions.holistic  # Mediapipe Solutions
 
-with open('body_language.pkl', 'rb') as f:
+with open('modules/body_language.pkl', 'rb') as f:
     model = pickle.load(f)
 
 # Get webcam feed

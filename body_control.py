@@ -9,11 +9,11 @@ from pynput import keyboard
 import argparse
 import math
 
-import pose_module as pm
+from modules import pose_module as pm
 from simple_pid import PID
 from multiprocessing import Process, Pipe, sharedctypes
-from fps import FPS
-from camera_morse import CameraMorse, RollingGraph
+from modules.fps import FPS
+from modules.camera_morse import CameraMorse, RollingGraph
 import logging
 import sys
 

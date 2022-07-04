@@ -177,7 +177,7 @@ def eval_and_serialize_model(fit_models: dict, X_test, y_test):
     :param y_test: parameter to test the model
     :return: a string of the binary file
     """
-    binary_file = "body_language.pkl"
+    binary_file = "modules/body_language.pkl"
     for algo, model in fit_models.items():
         yhat = model.predict(X_test.values)
         print(algo, accuracy_score(y_test, yhat))
@@ -189,7 +189,7 @@ def eval_and_serialize_model(fit_models: dict, X_test, y_test):
 
 
 def get_only_binary_file(fit_models: dict):
-    binary_file = "body_language.pkl"
+    binary_file = "modules/body_language.pkl"
     with open(binary_file, 'wb') as f:
         pickle.dump(fit_models['rf'], f)
 
@@ -231,7 +231,7 @@ def main(evaluate: bool, existing_csv_file=None, class_name=None, new_csv_file=F
         """Add class and train and test at the same time"""
         if new_csv_file:
             # Create file from scratch
-            csv_file = create_csv("coords.csv")
+            csv_file = create_csv("modules/coords.csv")
 
             # Add a class to new csv file
             add_class(csv_file, class_name)
@@ -292,10 +292,10 @@ if __name__ == "__main__":
     # main(new_csv_file=True, evaluate=False, class_name="BigSmile")
 
     # If csv file already exists
-    main(existing_csv_file="coords.csv", evaluate=False, class_name="Empty", add_class_only=False)
+    main(existing_csv_file="modules/coords.csv", evaluate=False, class_name="Normal", add_class_only=False)
 
     # To just add data to the csv and update binary file later (to make it faster)
-    # main(existing_csv_file="coords.csv", evaluate=False, class_name="BigSmile", add_class_only=True)
+    # main(existing_csv_file="modules/coords.csv", evaluate=False, class_name="BigSmile", add_class_only=True)
 
     # To just train and test the models and get the binary files (if you have previously added a class only)
-    # main(existing_csv_file="coords.csv", evaluate=False, add_class_only=False)
+    # main(existing_csv_file="modules/coords.csv", evaluate=False, add_class_only=False)

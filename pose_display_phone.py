@@ -12,7 +12,7 @@ mp_holistic = mp.solutions.holistic  # Mediapipe Solutions
 # Replace the below URL with your own. Make sure to add "/shot.jpg" at last.
 url = "http://192.168.0.22:8080/shot.jpg"
 
-with open('body_language.pkl', 'rb') as f:
+with open('modules/body_language.pkl', 'rb') as f:
     model = pickle.load(f)
 
 # Initiate holistic model
