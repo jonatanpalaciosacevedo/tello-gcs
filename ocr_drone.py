@@ -4,7 +4,13 @@ import imutils
 import time
 import cv2
 import pytesseract
-import requests
+from djitellopy import tello
+
+drone = tello.Tello()
+drone.connect()
+print(drone.get_battery())
+drone.streamon()  # turn on camera
+time.sleep(2)
 
 letter = "A"
 
@@ -13,9 +19,6 @@ letter = "A"
 # r"C:\Users\YOUR_USER\AppData\Local\Tesseract-OCR\tesseract.exe"
 # r"C:\Program Files\Tesseract-OCR\tessdata"
 pytesseract.pytesseract.tesseract_cmd = r'/usr/local/bin/tesseract'
-
-# Replace the below URL with your own. Make sure to add "/shot.jpg" at last.
-url = "http://192.168.0.13:8080/shot.jpg"
 
 # initialize our output video writer along with the dimensions of the
 # output frame
@@ -37,10 +40,8 @@ cntr = 0
 
 # loop over frames from the video stream
 while True:
-    # Phone camera with IP Camera
-    img_resp = requests.get(url)
-    img_arr = np.array(bytearray(img_resp.content), dtype=np.uint8)
-    img = cv2.imdecode(img_arr, -1)
+    # Drone camera
+    orig = drone.get_frame_read().frame
 
     # grab the next frame and handle if we are reading from either
     # a webcam or a video file
@@ -48,7 +49,7 @@ while True:
 
     # resize the frame and compute the ratio of the *new* width to
     # the *old* width
-    frame = imutils.resize(img, height=480, width=640)
+    frame = imutils.resize(orig, height=480, width=640)
 
     # convert the frame to grayscale and detect if the frame is
     # considered blurry or not
