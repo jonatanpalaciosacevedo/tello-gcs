@@ -132,6 +132,8 @@ if __name__ == "__main__":
 
     # Scan ips and get list
     # ips = scan_ips()
+
+    # Or if you know the ips, type them directly on a list
     ips = ["192.168.0.30", "192.168.0.31"]
 
     # Check which of the ips is a drone and check db
