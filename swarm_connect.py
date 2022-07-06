@@ -2,21 +2,36 @@ import socket
 import ipaddress
 from subprocess import Popen, PIPE
 from djitellopy import tello
-import time
-import pickle
+import numpy as np
 
 
 class DroneDB:
     def __init__(self, serial_number):
+
+        ids = {"unknown": 1,
+               "0TQDG1GEDB258Z": 2,
+               "0TQZH4EED00478": 4}
+
         self.serial_number = serial_number
+        self.db = "drones.dat"
+        self.id = ids[self.serial_number]
 
+    def add_drone(self):
+        with open(self.db, "a") as f:
+            f.write(str(self.serial_number) + "\n")
 
-def save_object(item):
-    try:
-        with open("data.pickle", "wb") as f:
-            pickle.dump(obj, f, protocol=pickle.HIGHEST_PROTOCOL)
-    except Exception as ex:
-        print("Error during pickling object (Possibly unsupported):", ex)
+    def in_db(self):
+        with open(self.db, "r") as f:
+            found = False
+            for line in f.readlines():
+                if self.serial_number == line.strip():
+                    found = True
+                    print("Drone in Data Base!")
+
+            if not found:
+                print("Drone not in Data Base!")
+
+        return found
 
 
 def extract_my_ip():
@@ -68,10 +83,66 @@ def scan_ips():
     return list_ips
 
 
+def detect_drones_with_ip(list_of_ips):
+    # Connect to drone via AP (Specify your drone IP)
+    drones = []
+
+    for ip in list_of_ips:
+        drone = tello.Tello(host=ip)
+
+        # Connect with UDP commands
+        if "Aborting command" not in drone.send_command_with_return("command"):
+            # print("RESPONSE: " + drone.send_command_with_return("command"))
+            # print("Drones detected: " + str(i))
+            drones.append(drone)
+
+    # Found valid drones within the ip list
+    if drones:
+        print(f"Found {len(drones)} drones.")
+
+        for drone in drones:
+            drone_i = DroneDB(drone.send_command_with_return("sn?"))
+            if not drone_i.in_db():
+                print("Drone not in DB, adding it now")
+                drone_i.add_drone()
+            else:
+                print(f"Hello {drone_i.id}!")
+
+    else:
+        print("No drones found")
+        return None
+
+    return drones
+
+
+ip_s = ["192.168.0.30", "192.168.0.31"]
+droness = detect_drones_with_ip(ip_s)
+
+# print(lis)
+# print(lis[2].get_battery())  # second found drone
+
+
+
+
 # Get list with all ip addresses that are connected to network (excluding the ip address of current device)
-ip_list = scan_ips()
+# ip_list = scan_ips()
 
-print(ip_list)
+# print(ip_list)
 
-obj = DroneDB(10)
-save_object(obj)
+# obj = DroneDB(10)
+# save_object(obj)
+
+
+"""
+
+    - Open drone DB
+    - Scan ips connected to network
+    - If a drone is in DB
+        - Send UDP command sn? 
+        - If serial np is in DB, say hello 
+    - If it finds an ip not in DB, ask to register it?
+    - Register a drone if you want
+    - Save drone to DB
+
+
+"""
