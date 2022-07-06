@@ -15,7 +15,7 @@ letter = "A"
 pytesseract.pytesseract.tesseract_cmd = r'/usr/local/bin/tesseract'
 
 # Replace the below URL with your own. Make sure to add "/shot.jpg" at last.
-url = "http://192.168.0.13:8080/shot.jpg"
+url = "http://192.168.0.22:8080/shot.jpg"
 
 # initialize our output video writer along with the dimensions of the
 # output frame
