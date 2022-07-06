@@ -2,15 +2,18 @@ import socket
 import ipaddress
 from subprocess import Popen, PIPE
 from djitellopy import tello
-import numpy as np
 
 
 class DroneDB:
     def __init__(self, serial_number):
 
-        ids = {"unknown": 1,
+        ids = {"1111": 1,
                "0TQDG1GEDB258Z": 2,
-               "0TQZH4EED00478": 4}
+               "3333": 3,
+               "0TQZH4EED00478": 4,
+               "5555": 5,
+               "6666": 6,
+               "7777": 7}
 
         self.serial_number = serial_number
         self.db = "drones.dat"
@@ -115,34 +118,21 @@ def detect_drones_with_ip(list_of_ips):
     return drones
 
 
-ip_s = ["192.168.0.30", "192.168.0.31"]
-droness = detect_drones_with_ip(ip_s)
-
-# print(lis)
-# print(lis[2].get_battery())  # second found drone
+def main():
+    pass
 
 
+if __name__ == "__main__":
+    """
+        1. Scan ips connected to network and get the list
+        2. If a drone is in DB
+            - If serial number is in DB, say hello
+            - If not, register it
+    """
 
+    # Scan ips and get list
+    # ips = scan_ips()
+    ips = ["192.168.0.30", "192.168.0.31"]
 
-# Get list with all ip addresses that are connected to network (excluding the ip address of current device)
-# ip_list = scan_ips()
-
-# print(ip_list)
-
-# obj = DroneDB(10)
-# save_object(obj)
-
-
-"""
-
-    - Open drone DB
-    - Scan ips connected to network
-    - If a drone is in DB
-        - Send UDP command sn? 
-        - If serial np is in DB, say hello 
-    - If it finds an ip not in DB, ask to register it?
-    - Register a drone if you want
-    - Save drone to DB
-
-
-"""
+    # Check which of the ips is a drone and check db
+    drones = detect_drones_with_ip(ips)
