@@ -5,14 +5,6 @@ import time
 import cv2
 import pytesseract
 import requests
-from djitellopy import tello
-
-# To test with drone add:
-# drone = tello.Tello()
-# drone.connect()
-# print(drone.get_battery())
-# drone.streamon()  # turn on camera
-# time.sleep(2)
 
 letter = "A"
 
