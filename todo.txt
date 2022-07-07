@@ -1,0 +1,5 @@
+# TO DO LIST:
+
+1. Jugar con camara de abajo del drone a ver si reconoce cosas
+2. Algoritmo para detectar colores
+
