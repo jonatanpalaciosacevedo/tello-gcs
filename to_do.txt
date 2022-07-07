@@ -1,0 +1,5 @@
+
+# TO DO:
+
+1. Jugar con camara de abajo del drone a ver si reconoce cosas
+
