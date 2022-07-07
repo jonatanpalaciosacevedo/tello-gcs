@@ -5,7 +5,7 @@ from djitellopy import tello
 
 
 class DroneDB:
-    def __init__(self, serial_number):
+    def __init__(self, me, serial_number):
 
         ids = {"1111": 1,
                "0TQDG1GEDB258Z": 2,
@@ -15,6 +15,7 @@ class DroneDB:
                "6666": 6,
                "7777": 7}
 
+        self.me = me
         self.serial_number = serial_number
         self.db = "drones.dat"
         self.id = ids[self.serial_number]
@@ -29,10 +30,10 @@ class DroneDB:
             for line in f.readlines():
                 if self.serial_number == line.strip():
                     found = True
-                    print("Drone in Data Base!")
+                    print("Drone in Data Base.")
 
             if not found:
-                print("Drone not in Data Base!")
+                print("Drone not in Data Base.")
 
         return found
 
@@ -89,6 +90,7 @@ def scan_ips():
 def detect_drones_with_ip(list_of_ips):
     # Connect to drone via AP (Specify your drone IP)
     drones = []
+    dict_drones = {}
 
     for ip in list_of_ips:
         drone = tello.Tello(host=ip)
@@ -104,18 +106,20 @@ def detect_drones_with_ip(list_of_ips):
         print(f"Found {len(drones)} drones.")
 
         for drone in drones:
-            drone_i = DroneDB(drone.send_command_with_return("sn?"))
+            drone_i = DroneDB(drone, drone.send_command_with_return("sn?"))
             if not drone_i.in_db():
                 print("Drone not in DB, adding it now")
                 drone_i.add_drone()
             else:
-                print(f"Hello {drone_i.id}!")
+                print(f"Hello TELLO-{drone_i.id}!")
 
+            dict_drones[drone_i.id] = drone_i
+            print(f"TELLO-{drone_i.id} battery: {drone_i.me.get_battery()}%")
     else:
         print("No drones found")
         return None
 
-    return drones
+    return dict_drones
 
 
 def main():
@@ -137,4 +141,4 @@ if __name__ == "__main__":
     ips = ["192.168.0.30", "192.168.0.31"]
 
     # Check which of the ips is a drone and check db
-    drones = detect_drones_with_ip(ips)
+    drones = detect_drones_with_ip(ips)  # Dictionary "drones" with drone number as key and DroneDB object as value
