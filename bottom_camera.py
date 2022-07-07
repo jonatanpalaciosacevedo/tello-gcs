@@ -20,6 +20,10 @@ drone.set_video_direction(drone.CAMERA_DOWNWARD)
 # FPS
 # drone.set_video_fps(drone.FPS_30)
 
+# Height
+print(drone.get_height())
+# Gives the height relative to previous position, if not moving its 0
+
 while True:
     img = drone.get_frame_read().frame
     img = imutils.resize(img, width=640, height=480)
