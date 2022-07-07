@@ -8,7 +8,7 @@ For Windows: https://github.com/UB-Mannheim/tesseract/wiki
 For Mac/Linux: https://tesseract-ocr.github.io/tessdoc/Installation.html#macos
 
 
-
+***
 
 
 Credits to:
