@@ -12,3 +12,4 @@ pytesseract~=0.3.9
 matplotlib~=3.5.1
 djitellopy~=2.4.0
 protobuf==3.19.0
+simple_pid==1.0.1
