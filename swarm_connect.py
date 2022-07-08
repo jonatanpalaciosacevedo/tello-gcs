@@ -2,6 +2,7 @@ import socket
 import ipaddress
 from subprocess import Popen, PIPE
 from djitellopy import tello
+import time
 
 
 class DroneDB:
@@ -100,6 +101,7 @@ def detect_drones_with_ip(list_of_ips):
             # print("RESPONSE: " + drone.send_command_with_return("command"))
             # print("Drones detected: " + str(i))
             drones.append(drone)
+            time.sleep(1)
 
     # Found valid drones within the ip list
     if drones:
@@ -107,6 +109,7 @@ def detect_drones_with_ip(list_of_ips):
 
         for drone in drones:
             drone_i = DroneDB(drone, drone.send_command_with_return("sn?"))
+            time.sleep(1)
             if not drone_i.in_db():
                 print("Drone not in DB, adding it now")
                 drone_i.add_drone()
@@ -142,3 +145,8 @@ if __name__ == "__main__":
 
     # Check which of the ips is a drone and check db
     drones = detect_drones_with_ip(ips)  # Dictionary "drones" with drone number as key and DroneDB object as value
+
+    for i in range(len(drones) - 1):
+        print(f"Drone {drones[i].id} battery: {drones[i].get_battery()}")
+
+
