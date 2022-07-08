@@ -1,2 +1,6 @@
 # Ignore to-do list
 /todo.txt
+
+# Scrips to help with color detection
+/colors.csv
+/video_color_detection.py
