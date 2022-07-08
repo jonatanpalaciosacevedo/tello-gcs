@@ -6,11 +6,22 @@ import cv2
 import pytesseract
 from djitellopy import tello
 
-drone = tello.Tello()
+# Connect to drone via Station Mode (Specify your drone IP)
+tello_ip = "192.168.0.31"  # Tello IP address
+
+# Or connect via AP Mode
+# drone = tello.Tello()
+
+drone = tello.Tello(host=tello_ip)
 drone.connect()
-print(drone.get_battery())
+print(f"Battery: {drone.get_battery()}%")
 drone.streamon()  # turn on camera
-time.sleep(2)
+
+# Best resolution
+drone.set_video_resolution(drone.RESOLUTION_720P)
+
+# Most FPS
+drone.set_video_fps(drone.FPS_30)
 
 letter = "A"
 
@@ -54,7 +65,19 @@ while True:
     # convert the frame to grayscale and detect if the frame is
     # considered blurry or not
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    (mean, blurry) = detect_blur_fft(gray, thresh=11)
+    (mean, blurry) = detect_blur_fft(gray, thresh=7)
+
+    # Show the blurriness mean
+    color = (0, 255, 0)
+
+    thr = "Thr ({:.4f})"
+    thr = thr.format(mean)
+    temp = f"Temperature: {drone.get_temperature()}C"
+    bat = f"Battery: {drone.get_battery()}%"
+
+    cv2.putText(frame, thr, (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2)
+    cv2.putText(frame, temp, (10, 25 + 40), cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2)
+    cv2.putText(frame, bat, (10, 25 + 40 + 40), cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2)
 
     # Testing
     img_h, img_w, _ = frame.shape
@@ -63,12 +86,9 @@ while True:
     # process data if not blurry
     if not blurry:
         # Test detection threshold
-        # color = (0, 255, 0)
-        text = "Detecting ({:.4f})"
-        text = text.format(mean)
-        print(text)
-        # cv2.putText(frame, text, (10, 25), cv2.FONT_HERSHEY_SIMPLEX,
-        #             0.7, color, 2)
+        text = "Detecting..."
+
+        cv2.putText(frame, text, (10, 25 + 40 + 40 + 40), cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2)
 
         # Process letters here
         if (cntr % 20) == 0:
