@@ -2,5 +2,5 @@
 /todo.txt
 
 # Scrips to help with color detection
-/colors.csv
+/modules/colors.csv
 /video_color_detection.py
