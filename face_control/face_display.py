@@ -3,37 +3,24 @@ import pandas as pd
 import pickle
 import cv2
 import numpy as np
-import imutils
-from djitellopy import tello
-import time
-import requests
-
-# Connect to drone via AP (Specifiy your drone IP)
-tello_ip = "192.168.0.30"  # Tello IP address
-
-drone = tello.Tello(host=tello_ip)
-drone.connect()
-print(drone.get_battery())
-time.sleep(2)
-
-# Replace the below URL with your own. Make sure to add "/shot.jpg" at last.
-url = "http://192.168.0.22:8080/shot.jpg"
 
 mp_drawing = mp.solutions.drawing_utils  # Drawing helpers
 mp_holistic = mp.solutions.holistic  # Mediapipe Solutions
 
-with open('modules/body_language.pkl', 'rb') as f:
+with open('../modules/body_language.pkl', 'rb') as f:
     model = pickle.load(f)
+
+# Get webcam feed
+cap = cv2.VideoCapture(0)
 
 # Initiate holistic model
 with mp_holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=0.5) as holistic:
-    count = 0
-    while True:
-        # Get image from phone
-        img_resp = requests.get(url)
-        img_arr = np.array(bytearray(img_resp.content), dtype=np.uint8)
-        image = cv2.imdecode(img_arr, -1)
-        image = imutils.resize(image, width=640, height=480)
+    while cap.isOpened():
+        ret, frame = cap.read()  # PARA WEBCAM
+
+        # Recolor Feed
+        image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        image.flags.writeable = False
 
         # Make Detections
         results = holistic.process(image)
@@ -84,13 +71,7 @@ with mp_holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=
             X = pd.DataFrame([row])
             body_language_class = model.predict(X)[0]
             body_language_prob = model.predict_proba(X)[0]
-            # print(body_language_class, body_language_prob)
-            if body_language_class == "BigSmile":
-                count = count + 1
-                if count == 20:
-                    # Take off drone
-                    drone.takeoff()
-
+            print(body_language_class, body_language_prob)
 
             # Grab ear coords
             coords = tuple(np.multiply(
@@ -124,12 +105,12 @@ with mp_holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=
         except:
             pass
 
-        cv2.imshow('Phone Feed', image)
+        cv2.imshow('Webcam Feed', image)
 
         if cv2.waitKey(10) & 0xFF == ord('q'):
             break
 
-drone.land()
+cap.release()
 cv2.destroyAllWindows()
 
 

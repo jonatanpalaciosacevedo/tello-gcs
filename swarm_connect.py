@@ -8,13 +8,9 @@ import time
 class DroneDB:
     def __init__(self, me, serial_number):
 
-        ids = {"1111": 1,
-               "0TQDG1GEDB258Z": 2,
-               "3333": 3,
+        ids = {"0TQDG1GEDB258Z": 2,
                "0TQZH4EED00478": 4,
-               "5555": 5,
-               "6666": 6,
-               "7777": 7}
+               }
 
         self.me = me
         self.serial_number = serial_number
