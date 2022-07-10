@@ -4,3 +4,9 @@
 # Scrips to help with color detection
 /modules/colors.csv
 /video_color_detection.py
+
+# Unfinished
+/drones.dat
+/bottom_camera.py
+/set_ap_mode.py
+/swarm_connect.py
