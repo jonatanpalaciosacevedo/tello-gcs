@@ -8,6 +8,7 @@ import os
 import binascii
 from contextlib import suppress
 
+
 class SwarmUtil(object):
     """
     Swarm utility class.
@@ -22,7 +23,6 @@ class SwarmUtil(object):
         :return: List of Queues.
         """
         return [queue.Queue() for x in range(num)]
-
 
     @staticmethod
     def drone_handler(tello, queue):
@@ -39,7 +39,6 @@ class SwarmUtil(object):
             command = queue.get()
             tello.send_command(command)
 
-
     @staticmethod
     def all_queue_empty(pools):
         """
@@ -53,7 +52,6 @@ class SwarmUtil(object):
                 return False
         return True
 
-
     @staticmethod
     def all_got_response(manager):
         """
@@ -66,7 +64,6 @@ class SwarmUtil(object):
             if not log.got_response():
                 return False
         return True
-
 
     @staticmethod
     def create_dir(dpath):
@@ -103,9 +100,8 @@ class SwarmUtil(object):
                 s = '\n'.join(s)
 
                 out.write(f'{s}\n')
-        
-        print(f'[LOG] Saved log files to {fpath}')
 
+        print(f'[LOG] Saved log files to {fpath}')
 
     @staticmethod
     def check_timeout(start_time, end_time, timeout):
@@ -121,6 +117,7 @@ class SwarmUtil(object):
         diff = end_time - start_time
         time.sleep(0.1)
         return diff > timeout
+
 
 class Swarm(object):
     """
@@ -160,6 +157,7 @@ class Swarm(object):
 
         :return: None.
         """
+
         def is_invalid_command(command):
             if command is None:
                 return True
@@ -171,7 +169,7 @@ class Swarm(object):
             if c == '\n':
                 return True
             return False
-        
+
         try:
             for command in self.commands:
                 if is_invalid_command(command):
@@ -195,7 +193,7 @@ class Swarm(object):
                     self._handle_eq(command)
                 elif 'sync' in command:
                     self._handle_sync(command)
-            
+
             self._wait_for_all()
         except KeyboardInterrupt as ki:
             self._handle_keyboard_interrupt()
@@ -214,7 +212,7 @@ class Swarm(object):
         """
         while not SwarmUtil.all_queue_empty(self.pools):
             time.sleep(0.5)
-        
+
         time.sleep(1)
 
         while not SwarmUtil.all_got_response(self.manager):
@@ -274,8 +272,8 @@ class Swarm(object):
         if id == '*':
             id_list = [t for t in range(len(self.tellos))]
         else:
-            id_list.append(int(id)-1) 
-        
+            id_list.append(int(id) - 1)
+
         action = str(command.partition('>')[2])
 
         for tello_id in id_list:
@@ -310,7 +308,7 @@ class Swarm(object):
 
             if battery < threshold:
                 is_low = True
-        
+
         if is_low:
             raise Exception('Battery check failed!')
         else:
@@ -324,8 +322,8 @@ class Swarm(object):
         :return: None.
         """
         delay_time = float(command.partition('delay')[2])
-        print (f'[DELAY] Start Delay for {delay_time} second')
-        time.sleep(delay_time)  
+        print(f'[DELAY] Start Delay for {delay_time} second')
+        time.sleep(delay_time)
 
     def _handle_correct_ip(self, command):
         """
@@ -335,10 +333,10 @@ class Swarm(object):
         :return: None.
         """
         for queue in self.pools:
-            queue.put('sn?') 
+            queue.put('sn?')
 
         self._wait_for_all()
-        
+
         for log in self.manager.get_last_logs():
             sn = str(log.response)
             tello_ip = str(log.drone_ip)
@@ -357,8 +355,8 @@ class Swarm(object):
         sn = command.partition('=')[2]
         ip = self.sn2ip[sn]
 
-        self.id2sn[id-1] = sn
-        
+        self.id2sn[id - 1] = sn
+
         print(f'[IP_SN_ID] IP = {ip}, SN = {sn}, ID = {id}')
 
     def _handle_sync(self, command):
@@ -375,19 +373,19 @@ class Swarm(object):
 
         try:
             start = time.time()
-            
+
             while not SwarmUtil.all_queue_empty(self.pools):
                 now = time.time()
                 if SwarmUtil.check_timeout(start, now, timeout):
                     raise RuntimeError('Sync failed since all queues were not empty!')
 
             print('[SYNC] All queues empty and all commands sent')
-           
+
             while not SwarmUtil.all_got_response(self.manager):
                 now = time.time()
                 if SwarmUtil.check_timeout(start, now, timeout):
                     raise RuntimeError('Sync failed since all responses were not received!')
-            
+
             print('[SYNC] All response received')
         except RuntimeError:
             print('[SYNC] Failed to sync; timeout exceeded')
