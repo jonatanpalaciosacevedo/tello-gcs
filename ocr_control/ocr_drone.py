@@ -6,36 +6,24 @@ import cv2
 import pytesseract
 from djitellopy import tello
 
-# Connect to drone via Station Mode (Specify your drone IP)
-tello_ip = "192.168.0.31"  # Tello IP address
+# Connect via AP Mode
+drone = tello.Tello()
 
-# Or connect via AP Mode
-# drone = tello.Tello()
-
-drone = tello.Tello(host=tello_ip)
 drone.connect()
 print(f"Battery: {drone.get_battery()}%")
 drone.streamon()  # turn on camera
 
 # Best resolution
-drone.set_video_resolution(drone.RESOLUTION_720P)
+# drone.set_video_resolution(drone.RESOLUTION_720P)
 
 # Most FPS
-drone.set_video_fps(drone.FPS_30)
-
-letter = "A"
+# drone.set_video_fps(drone.FPS_30)
 
 # path of pytesseract execution folder (Change as needed)
 # For windows, the path is usually in either of these two:
 # r"C:\Users\YOUR_USER\AppData\Local\Tesseract-OCR\tesseract.exe"
 # r"C:\Program Files\Tesseract-OCR\tessdata"
 pytesseract.pytesseract.tesseract_cmd = r'/usr/local/bin/tesseract'
-
-# initialize our output video writer along with the dimensions of the
-# output frame
-writer = None
-outputW = None
-outputH = None
 
 # create a named window for our output OCR visualization (a named
 # window is required here so that we can automatically position it
@@ -44,10 +32,10 @@ cv2.namedWindow("Output")
 
 # Get video from webcam / drone / phone
 print("[INFO] starting video stream...")
-vs = VideoStream(src=0).start()
 time.sleep(2.0)
 
 cntr = 0
+detecting = False
 
 # loop over frames from the video stream
 while True:
@@ -58,6 +46,8 @@ while True:
     # a webcam or a video file
     cntr = cntr + 1
 
+    key = cv2.waitKey(1) & 0xFF
+
     # resize the frame and compute the ratio of the *new* width to
     # the *old* width
     frame = imutils.resize(orig, height=480, width=640)
@@ -67,9 +57,8 @@ while True:
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     (mean, blurry) = detect_blur_fft(gray, thresh=7)
 
-    # Show the blurriness mean
+    # Show stats
     color = (0, 255, 0)
-
     thr = "Thr ({:.4f})"
     thr = thr.format(mean)
     temp = f"Temperature: {drone.get_temperature()}C"
@@ -79,12 +68,12 @@ while True:
     cv2.putText(frame, temp, (10, 25 + 40), cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2)
     cv2.putText(frame, bat, (10, 25 + 40 + 40), cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2)
 
-    # Testing
-    img_h, img_w, _ = frame.shape
-    frame = cv2.circle(frame, (320, 180), radius=3, color=(0, 0, 255), thickness=-1)
+    # if "c" is press, start detecting
+    if key == ord("c"):
+        detecting = not detecting
 
     # process data if not blurry
-    if not blurry:
+    if not blurry and detecting:
         # Test detection threshold
         text = "Detecting..."
 
@@ -97,9 +86,6 @@ while True:
             imgchar = pytesseract.image_to_string(frame)
             imgboxes = pytesseract.image_to_boxes(frame)
 
-            if letter in imgchar:
-                print(f"found the letter {letter}")
-
             print(imgchar)
 
             for boxes in imgboxes.splitlines():
@@ -109,13 +95,11 @@ while True:
 
     # show the output video OCR visualization
     cv2.imshow("Output", frame)
-    key = cv2.waitKey(1) & 0xFF
 
     # if the 'q' key was pressed, break from the loop
     if key == ord("q"):
         break
 
-vs.stop()
 
 # close any open windows
 cv2.destroyAllWindows()
