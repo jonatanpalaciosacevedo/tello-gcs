@@ -48,7 +48,7 @@ while True:
     # convert the frame to grayscale and detect if the frame is
     # considered blurry or not
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    (mean, blurry) = detect_blur_fft(gray, thresh=15)
+    (mean, blurry) = detect_blur_fft(gray, thresh=7)
 
     # Press "c" to toggle detection
     # Aqui cambiar a que detecting sea cuando no se esta moviendo el dron en vez de la letra "c"
@@ -71,7 +71,7 @@ while True:
         if (cntr % 20) == 0:
             img_h, img_w, _ = frame.shape
             x1, y1, w1, h1 = 0, 0, img_h, img_w
-            imgchar = pytesseract.image_to_string(frame)
+            imgchar = pytesseract.image_to_string(frame, config="--psm 10")
             # imgchar = pytesseract.image_to_string(frame, lang='equ', config='--psm 1 --oem 3')
 
             imgboxes = pytesseract.image_to_boxes(frame)
