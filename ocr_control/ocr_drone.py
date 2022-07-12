@@ -1,5 +1,4 @@
 from pyimagesearch.blur_detection.blur_detector import *
-from imutils.video import VideoStream
 import imutils
 import time
 import cv2
@@ -24,7 +23,12 @@ drone.set_video_fps(drone.FPS_30)
 # For windows, the path is usually in either of these two:
 # r"C:\Users\YOUR_USER\AppData\Local\Tesseract-OCR\tesseract.exe"
 # r"C:\Program Files\Tesseract-OCR\tessdata"
-pytesseract.pytesseract.tesseract_cmd = r'/usr/local/bin/tesseract'
+
+# For mac it can also be here:
+# pytesseract.pytesseract.tesseract_cmd = r'/usr/local/bin/tesseract'
+
+pytesseract.pytesseract.tesseract_cmd = r'/usr/local/Cellar/tesseract/5.1.0/bin/tesseract'
+
 
 # create a named window for our output OCR visualization (a named
 # window is required here so that we can automatically position it
