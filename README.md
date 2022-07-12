@@ -4,6 +4,15 @@
 
 Various applications for the Tello Drone
 
+***
+
+Requirements:
+
+Tello EDU Drone
+Firmware version: 2.05 +
+
+***
+
 Only extra install needed is tesseract executable:
 
 For Windows: https://github.com/UB-Mannheim/tesseract/wiki
