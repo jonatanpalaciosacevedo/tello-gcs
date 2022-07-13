@@ -27,7 +27,7 @@ drone.set_video_fps(drone.FPS_30)
 # For mac it can also be here:
 # pytesseract.pytesseract.tesseract_cmd = r'/usr/local/bin/tesseract'
 
-pytesseract.pytesseract.tesseract_cmd = r'/usr/local/Cellar/tesseract/5.1.0/bin/tesseract'
+pytesseract.pytesseract.tesseract_cmd = r'/usr/local/Cellar/tesseract/5.2.0/bin/tesseract'
 
 
 # create a named window for our output OCR visualization (a named
@@ -102,7 +102,7 @@ while True:
         if (cntr % 20) == 0:
             img_h, img_w, _ = frame.shape
             x1, y1, w1, h1 = 0, 0, img_h, img_w
-            imgchar = pytesseract.image_to_string(frame, config="--psm 10")
+            imgchar = pytesseract.image_to_string(frame, lang="eng+equ", config="--psm 10")
             imgboxes = pytesseract.image_to_boxes(frame)
 
             for boxes in imgboxes.splitlines():
