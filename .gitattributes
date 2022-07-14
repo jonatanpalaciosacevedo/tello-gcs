@@ -1,3 +1,5 @@
 # Auto detect text files and perform LF normalization
 * text=auto
 *.csv filter=lfs diff=lfs merge=lfs -text
+*.dll filter=lfs diff=lfs merge=lfs -text
+modules/tesseractwin/libtesseract-5.dll filter=lfs diff=lfs merge=lfs -text
