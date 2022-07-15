@@ -1,4 +1,4 @@
-# tello-gcs
+# TELLO GROUND CONTROL STATION
 
 [Work in progress]
 
