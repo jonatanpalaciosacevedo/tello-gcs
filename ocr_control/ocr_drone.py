@@ -4,6 +4,30 @@ import time
 import cv2
 import pytesseract
 from djitellopy import tello
+import os
+
+
+# ---------------
+# In case of self installation of tesseract:
+# Path of pytesseract execution folder (Change as needed)
+
+# For windows, the path is either here:
+# your_username = os.getlogin()
+# r"C:\Users\your_username\AppData\Local\Tesseract-OCR\tesseract.exe"
+
+# Or here:
+# r"C:\Program Files\Tesseract-OCR\tessdata"
+# ---------------
+
+# For Windows, the folder is already installed in this project (easier):
+# pytesseract.pytesseract.tesseract_cmd = r'../modules/tesseractwin/tesseract.exe'
+
+# For mac users you have to install tesseract using Homebrew and the path is usually here:
+# pytesseract.pytesseract.tesseract_cmd = r'/usr/local/bin/tesseract'
+
+# Or here:
+pytesseract.pytesseract.tesseract_cmd = r'/usr/local/Cellar/tesseract/5.2.0/bin/tesseract'  # Depending on the version of tesseract
+
 
 # Connect via AP Mode
 drone = tello.Tello()
@@ -18,20 +42,6 @@ drone.set_video_resolution(drone.RESOLUTION_720P)
 
 # Most FPS
 drone.set_video_fps(drone.FPS_30)
-
-# path of pytesseract execution folder (Change as needed)
-# For windows, the path is usually in either of these two:
-# r"C:\Users\YOUR_USER\AppData\Local\Tesseract-OCR\tesseract.exe"
-# r"C:\Program Files\Tesseract-OCR\tessdata"
-
-# For Windows, the folder is already installed in the proyect
-pytesseract.pytesseract.tesseract_cmd = r'../modules/tesseractwin/tesseract.exe'
-
-
-# For mac it can also be here:
-# pytesseract.pytesseract.tesseract_cmd = r'/usr/local/bin/tesseract'
-# pytesseract.pytesseract.tesseract_cmd = r'/usr/local/Cellar/tesseract/5.2.0/bin/tesseract'
-
 
 # create a named window for our output OCR visualization (a named
 # window is required here so that we can automatically position it

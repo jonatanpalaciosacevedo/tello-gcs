@@ -4,19 +4,30 @@ import time
 import cv2
 import pytesseract
 import requests
+import os
 
 
-# path of pytesseract execution folder (Change as needed)
-# For windows, the path is usually in either of these two:
-# r"C:\Users\YOUR_USER\AppData\Local\Tesseract-OCR\tesseract.exe"
+# --------------- For when installing tesseract on your own:
+# Path of pytesseract execution folder (Change as needed)
+
+# For windows, the path is either here:
+# your_username = os.getlogin()
+# r"C:\Users\your_username\AppData\Local\Tesseract-OCR\tesseract.exe"
+
+# Or here:
 # r"C:\Program Files\Tesseract-OCR\tessdata"
 
-# For Windows, the folder is already installed in the proyect
-pytesseract.pytesseract.tesseract_cmd = r'../modules/tesseractwin/tesseract.exe'
+# --------------- For easier use, you don't have to change anything:
+# The folder is already installed:
+# pytesseract.pytesseract.tesseract_cmd = r'../modules/tesseractwin/tesseract.exe'
 
-# For mac it can also be here:
+
+# --------------- For mac users you have to install tesseract yourself using Homebrew and the path is usually installed here:
 # pytesseract.pytesseract.tesseract_cmd = r'/usr/local/bin/tesseract'
-# pytesseract.pytesseract.tesseract_cmd = r'/usr/local/Cellar/tesseract/5.2.0/bin/tesseract'
+
+# Or here (my case):
+pytesseract.pytesseract.tesseract_cmd = r'/usr/local/Cellar/tesseract/5.2.0/bin/tesseract'  # Depending on the version of tesseract
+
 
 # Replace the below URL with your own. Make sure to add "/shot.jpg" at last.
 url = "http://192.168.0.22:8080/shot.jpg"
