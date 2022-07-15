@@ -11,10 +11,12 @@ import requests
 # r"C:\Users\YOUR_USER\AppData\Local\Tesseract-OCR\tesseract.exe"
 # r"C:\Program Files\Tesseract-OCR\tessdata"
 
+# For Windows, the folder is already installed in the proyect
+pytesseract.pytesseract.tesseract_cmd = r'../modules/tesseractwin/tesseract.exe'
+
 # For mac it can also be here:
 # pytesseract.pytesseract.tesseract_cmd = r'/usr/local/bin/tesseract'
-
-pytesseract.pytesseract.tesseract_cmd = r'/usr/local/Cellar/tesseract/5.2.0/bin/tesseract'
+# pytesseract.pytesseract.tesseract_cmd = r'/usr/local/Cellar/tesseract/5.2.0/bin/tesseract'
 
 # Replace the below URL with your own. Make sure to add "/shot.jpg" at last.
 url = "http://192.168.0.22:8080/shot.jpg"

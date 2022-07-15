@@ -24,10 +24,13 @@ drone.set_video_fps(drone.FPS_30)
 # r"C:\Users\YOUR_USER\AppData\Local\Tesseract-OCR\tesseract.exe"
 # r"C:\Program Files\Tesseract-OCR\tessdata"
 
+# For Windows, the folder is already installed in the proyect
+pytesseract.pytesseract.tesseract_cmd = r'../modules/tesseractwin/tesseract.exe'
+
+
 # For mac it can also be here:
 # pytesseract.pytesseract.tesseract_cmd = r'/usr/local/bin/tesseract'
-
-pytesseract.pytesseract.tesseract_cmd = r'/usr/local/Cellar/tesseract/5.2.0/bin/tesseract'
+# pytesseract.pytesseract.tesseract_cmd = r'/usr/local/Cellar/tesseract/5.2.0/bin/tesseract'
 
 
 # create a named window for our output OCR visualization (a named
