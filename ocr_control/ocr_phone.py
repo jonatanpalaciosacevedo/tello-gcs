@@ -19,18 +19,18 @@ import os
 
 # --------------- For easier use, you don't have to change anything:
 # The folder is already installed:
-# pytesseract.pytesseract.tesseract_cmd = r'../modules/tesseractwin/tesseract.exe'
+pytesseract.pytesseract.tesseract_cmd = r'../modules/tesseractwin/tesseract.exe'
 
 
 # --------------- For mac users you have to install tesseract yourself using Homebrew and the path is usually installed here:
 # pytesseract.pytesseract.tesseract_cmd = r'/usr/local/bin/tesseract'
 
 # Or here (my case):
-pytesseract.pytesseract.tesseract_cmd = r'/usr/local/Cellar/tesseract/5.2.0/bin/tesseract'  # Depending on the version of tesseract
+# pytesseract.pytesseract.tesseract_cmd = r'/usr/local/Cellar/tesseract/5.2.0/bin/tesseract'  # Depending on the version of tesseract
 
 
 # Replace the below URL with your own. Make sure to add "/shot.jpg" at last.
-url = "http://192.168.0.22:8080/shot.jpg"
+url = "http://192.168.0.11:8080/shot.jpg"
 
 # create a named window for our output OCR visualization (a named
 # window is required here so that we can automatically position it

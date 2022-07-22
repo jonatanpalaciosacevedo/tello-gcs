@@ -47,10 +47,11 @@ def add_class(csv_file: str, class_name: str, video_input: str):
     mp_holistic = mp.solutions.holistic  # Mediapipe Solutions
 
     # Replace the below URL with your own. Make sure to add "/shot.jpg" at last.
-    url = "http://192.168.0.22:8080/shot.jpg"
+    url = "http://192.168.0.11:8080/shot.jpg"
 
-    # Takes video camera input to fill file
-    cap = cv2.VideoCapture(0)
+    if video_input == "webcam":
+        # Takes video camera input to fill file
+        cap = cv2.VideoCapture(0)
 
     # Initiate holistic model
     with mp_holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=0.5) as holistic:
@@ -297,7 +298,7 @@ if __name__ == "__main__":
     
     Existing classes:
         - Normal (Normal straight face)
-        - BigSmile (Big smile, showing teeth)
+        - Sonriendo (Big smile, showing teeth)
         
     """
 
@@ -306,12 +307,12 @@ if __name__ == "__main__":
     # main(new_csv_file=True, evaluate=False, class_name="Normal", video_input="phone")
 
     # If csv file already exists
-    main(existing_csv_file="../modules/coords.csv", evaluate=False, class_name="Sonriendo",
-         add_class_only=False, video_input="phone")
+    # main(existing_csv_file="../modules/coords.csv", evaluate=False, class_name="Normal",
+    #      add_class_only=False, video_input="phone")
 
     # To just add data to the csv and update binary file later (to make it faster)
-    # main(existing_csv_file="modules/coords.csv", evaluate=False, class_name="Normal",
+    # main(existing_csv_file="../modules/coords.csv", evaluate=False, class_name="Sonriendo",
     #      add_class_only=True, video_input="phone")
 
     # To just train and test the models and get the binary files (if you have previously added a class only)
-    # main(existing_csv_file="../modules/coords.csv", evaluate=False, add_class_only=False, video_input="phone")
+    main(existing_csv_file="../modules/coords.csv", evaluate=False, add_class_only=False, video_input="phone")
