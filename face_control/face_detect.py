@@ -294,7 +294,10 @@ if __name__ == "__main__":
                 To exit, press "q"
                 
                 You need at least 2 classes to create the binary file.
-    
+                
+                Types of video_input
+                video_input="webcam"
+                video_input="phone"
     
     Existing classes:
         - Normal (Normal straight face)
@@ -307,13 +310,13 @@ if __name__ == "__main__":
     # main(new_csv_file=True, evaluate=False, class_name="Normal", video_input="phone")
 
     # If csv file already exists
-    # main(existing_csv_file="../modules/coords.csv", evaluate=False, class_name="Normal",
+    # main(existing_csv_file="../modules/coords.csv", evaluate=False, class_name="Sonriendo",
     #      add_class_only=False, video_input="phone")
 
     # To just add data to the csv and update binary file later (to make it faster)
-    # main(existing_csv_file="../modules/coords.csv", evaluate=False, class_name="Sonriendo",
-    #      add_class_only=True, video_input="phone")
+    main(existing_csv_file="../modules/coords.csv", evaluate=False, class_name="Normal",
+         add_class_only=True, video_input="webcam")
 
     # To just train and test the models and get the binary files (if you have previously added a class only)
-    main(existing_csv_file="../modules/coords.csv", evaluate=False, add_class_only=False, video_input="phone")
+    # main(existing_csv_file="../modules/coords.csv", evaluate=False, add_class_only=False, video_input="phone")
 
