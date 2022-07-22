@@ -316,3 +316,4 @@ if __name__ == "__main__":
 
     # To just train and test the models and get the binary files (if you have previously added a class only)
     main(existing_csv_file="../modules/coords.csv", evaluate=False, add_class_only=False, video_input="phone")
+
