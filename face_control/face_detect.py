@@ -34,10 +34,11 @@ def create_csv(csv_file: str):
     return csv_file
 
 
-def add_class(csv_file: str, class_name: str, video_input: str):
+def add_class(csv_file: str, class_name: str, video_input: str, ip: str):
     """
     Function to CREATE new class in the csv file or ADD data to existing class
 
+    :param ip: ip from ip webcam
     :param video_input: Choose if phone or webcam
     :param csv_file: Name of the file
     :param class_name: Name of the class that you want to add data to
@@ -47,7 +48,7 @@ def add_class(csv_file: str, class_name: str, video_input: str):
     mp_holistic = mp.solutions.holistic  # Mediapipe Solutions
 
     # Replace the below URL with your own. Make sure to add "/shot.jpg" at last.
-    url = "http://192.168.0.11:8080/shot.jpg"
+    url = f"http://{ip}:8080/shot.jpg"
 
     if video_input == "webcam":
         # Takes video camera input to fill file
@@ -211,14 +212,22 @@ def get_only_binary_file(fit_models: dict):
     return binary_file
 
 
-def main(evaluate: bool, video_input: str, existing_csv_file=None, class_name=None, new_csv_file=False, add_class_only=False):
+def main(evaluate: bool, video_input: str, ip=None, existing_csv_file=None, class_name=None, new_csv_file=False,
+         add_class_only=False):
+    if video_input != "webcam" or video_input != "phone":
+        return "Error, invalid video_input"
+
+    if video_input == "phone":
+        if ip is None:
+            return "Error, if video_input is phone, please enter a valid ip address from ip webcam"
+
     if add_class_only:
         """Only adds data to the csv file to make it faster and load many data at once"""
         # Add data to existing file
         csv_file = existing_csv_file
 
         # Add a class
-        add_class(csv_file, class_name, video_input)
+        add_class(csv_file, class_name, video_input, ip)
         print(f"Class {class_name} was added to {csv_file} without updating the binary file")
 
     elif not class_name:
@@ -249,7 +258,7 @@ def main(evaluate: bool, video_input: str, existing_csv_file=None, class_name=No
             csv_file = create_csv("../modules/coords.csv")
 
             # Add a class to new csv file
-            add_class(csv_file, class_name, video_input)
+            add_class(csv_file, class_name, video_input, ip)
             print(f"Class {class_name} added to {csv_file}")
 
         else:
@@ -257,7 +266,7 @@ def main(evaluate: bool, video_input: str, existing_csv_file=None, class_name=No
             csv_file = existing_csv_file
 
             # Add a class
-            add_class(csv_file, class_name, video_input)
+            add_class(csv_file, class_name, video_input, ip)
             print(f"Class {class_name} added to {csv_file} \n")
             print("Training models...")
 
@@ -307,16 +316,14 @@ if __name__ == "__main__":
 
     """Examples of use"""
     # If creating new csv file or delete existing and start over (remember that you need at least 2 classes)
-    # main(new_csv_file=True, evaluate=False, class_name="Normal", video_input="phone")
+    # main(new_csv_file=True, evaluate=False, class_name="Normal", video_input="phone", ip="192.168.0.11")
 
     # If csv file already exists
-    # main(existing_csv_file="../modules/coords.csv", evaluate=False, class_name="Sonriendo",
-    #      add_class_only=False, video_input="phone")
+    # main(existing_csv_file="../modules/coords.csv", evaluate=False, class_name="Sonriendo", add_class_only=False, video_input="phone", ip="192.168.0.11")
 
     # To just add data to the csv and update binary file later (to make it faster)
-    main(existing_csv_file="../modules/coords.csv", evaluate=False, class_name="Normal",
-         add_class_only=True, video_input="webcam")
+    # main(existing_csv_file="../modules/coords.csv", evaluate=False, class_name="Normal", add_class_only=True, video_input="webcam", ip="192.168.0.11")
 
     # To just train and test the models and get the binary files (if you have previously added a class only)
-    # main(existing_csv_file="../modules/coords.csv", evaluate=False, add_class_only=False, video_input="phone")
+    # main(existing_csv_file="../modules/coords.csv", evaluate=False, add_class_only=False, video_input="phone", ip="192.168.0.11")
 
