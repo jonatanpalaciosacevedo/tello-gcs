@@ -34,6 +34,7 @@ drone = tello.Tello()
 
 drone.connect()
 print(f"Battery: {drone.get_battery()}%")
+print(f"Temp: {drone.get_temperature()}%")
 drone.streamon()  # turn on camera
 frame_read = drone.get_frame_read()
 
@@ -103,6 +104,12 @@ while True:
 
     if key == ord("a"):
         drone.move_left(20)
+
+    if key == ord("t"):
+        drone.move_forward(20)
+
+    if key == ord("g"):
+        drone.move_back(20)
 
     # process data if not blurry
     if not blurry and detecting:
