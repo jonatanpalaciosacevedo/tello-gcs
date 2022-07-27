@@ -38,10 +38,10 @@ drone.streamon()  # turn on camera
 frame_read = drone.get_frame_read()
 
 # Best resolution
-drone.set_video_resolution(drone.RESOLUTION_720P)
+# drone.set_video_resolution(drone.RESOLUTION_720P)
 
 # Most FPS
-drone.set_video_fps(drone.FPS_30)
+# drone.set_video_fps(drone.FPS_30)
 
 # create a named window for our output OCR visualization (a named
 # window is required here so that we can automatically position it
