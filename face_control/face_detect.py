@@ -319,10 +319,10 @@ if __name__ == "__main__":
     # main(new_csv_file=True, evaluate=False, class_name="Normal", video_input="phone", ip="192.168.0.11")
 
     # If csv file already exists
-    # main(existing_csv_file="../modules/coords.csv", evaluate=False, class_name="Sonriendo", add_class_only=False, video_input="phone", ip="192.168.0.11")
+    main(existing_csv_file="../modules/coords.csv", evaluate=False, class_name="Sonriendo", add_class_only=False, video_input="phone", ip="192.168.0.11")
 
     # To just add data to the csv and update binary file later (to make it faster)
-    # main(existing_csv_file="../modules/coords.csv", evaluate=False, class_name="Normal", add_class_only=True, video_input="webcam", ip="192.168.0.11")
+    # main(existing_csv_file="../modules/coords.csv", evaluate=False, class_name="<3", add_class_only=True, video_input="webcam", ip="192.168.0.11")
 
     # To just train and test the models and get the binary files (if you have previously added a class only)
     # main(existing_csv_file="../modules/coords.csv", evaluate=False, add_class_only=False, video_input="phone", ip="192.168.0.11")

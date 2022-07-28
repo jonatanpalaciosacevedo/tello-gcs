@@ -8,6 +8,8 @@ import cv2
 from pynput import keyboard
 import argparse
 import math
+import socket
+import sys
 
 from modules import pose_module as pm
 from simple_pid import PID
@@ -479,42 +481,33 @@ class TelloController(object):
             left_arm_angle2 = detector.findAngle(img, 13, 11, 23)  # Brazo izquierdo
             right_arm_angle2 = detector.findAngle(img, 24, 12, 14)  # Brazo derecho
             """
-            # Left Arm angle controls roll
-            left_arm_angle = findAngle(11, 13, 21, lmList)
-            left_arm_angle2 = findAngle(13, 11, 23, lmList)
-            move_left = False
-            move_right = False
-            move_forward = False
-            move_backward = False
-            take_pic = False
-            land_drone = False
+            # Left Arm angle controls
+            left_arm_angle = findAngle(11, 13, 21, lmList)  # Elbow angle
+            left_arm_angle2 = findAngle(13, 11, 23, lmList)  # Armpit angle
 
-            if left_arm_angle2 > 80 and left_arm_angle < 60:
-                move_left = True
-            if left_arm_angle2 > 80 and 180 > left_arm_angle > 100:
-                move_right = True
-
-            # Right Arm angle controls pitch
+            # Right Arm angle controls
             right_arm_angle = findAngle(22, 14, 12, lmList)
             right_arm_angle2 = findAngle(24, 12, 14, lmList)
 
-            if right_arm_angle2 > 80 and right_arm_angle < 60:
-                move_forward = True
-            if right_arm_angle2 > 80 and 180 > right_arm_angle > 100:
-                move_backward = True
+            move_left = False
+            move_right = False
+            heart = False
+            take_pic = False
+            land_drone = False
 
-            if left_arm_angle2 > 270 and right_arm_angle2 > 270 and left_arm_angle > 270 and right_arm_angle > 270:
+            # Controlling roll
+            if left_arm_angle2 > 80 and left_arm_angle > 60:
+                heart = True
+            if right_arm_angle2 > 80 and right_arm_angle > 60:
+                move_left = True
+
+            # Take a picture
+            if 10 > left_arm_angle2 > 270 and 10 > right_arm_angle2 > 270 and left_arm_angle > 270 and right_arm_angle > 270:
                 take_pic = True
 
-            if 70 < left_arm_angle < 130 and 70 < right_arm_angle < 130 and left_arm_angle2 < 30 and right_arm_angle2 < 30:
-                land_drone = True
-
-            # Hands touching controls keep distance mode
-            x1 = lmList[15][1]
-            y1 = lmList[15][2]
-            x2 = lmList[16][1]
-            y2 = lmList[16][2]
-            dist = findDistance(x1, y1, x2, y2)
+            # Land drone
+            # if left_arm_angle2 > 80 and left_arm_angle < 60 and right_arm_angle2 > 80 and right_arm_angle > 60:
+            #     land_drone = True
 
             # Calcular distancia entre hombros para
             x_hombro_d = lmList[12][1]
@@ -530,20 +523,14 @@ class TelloController(object):
             if move_right:
                 return "MOVING_RIGHT"
 
-            if move_forward:
-                return "MOVING_FORWARD"
-
-            if move_backward:
-                return "MOVING_BACKWARD"
+            if heart:
+                return "HEART"
 
             if take_pic:
                 return "TAKING_PICTURE"
 
             if land_drone:
                 return "LANDING_DORNE"
-
-            if dist < 150 and right_arm_angle2 > 90 and left_arm_angle2 > 90:
-                return "UNLOCK_DISTANCE"
 
         else:
             return None
@@ -614,21 +601,17 @@ class TelloController(object):
                             log.info("GOING RIGHT from pose")
                             self.axis_speed["roll"] = -self.def_speed["roll"]
 
-                        # elif self.pose == "MOVING_FORWARD":
-                        #     log.info("GOING TOWARDS pose")
-                        #     self.axis_speed["pitch"] = self.def_speed["pitch"]
-                        #
-                        # elif self.pose == "MOVING_BACKWARD":
-                        #     log.info("GOING AWAY pose")
-                        #     self.axis_speed["pitch"] = -self.def_speed["pitch"]
+                        elif self.pose == "HEART":
+                            log.info("HEART")
+                            self.drone.send_packet_data("EXT mled g 000000000rr00rr0rrrrrrrrrrrrrrrr0rrrrrr000rrrr00000rr00000000000")
 
-                        elif self.pose == "TAKING_PICTURE":
+                        elif self.pose == "TAKE_PICTURE":
                             # Take a picture in 1 second
                             if self.timestamp_take_picture is None:
-                                log.info("Take a picture in 1 second")
+                                log.info("Taking a picture in 1 second")
                                 self.timestamp_take_picture = time.time()
 
-                        elif self.pose == "LANDING_DRONE":
+                        elif self.pose == "LAND_DRONE":
                             if not self.palm_landing:
                                 log.info("LANDING on pose")
                                 # Landing

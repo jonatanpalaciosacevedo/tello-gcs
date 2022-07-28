@@ -1,10 +1,10 @@
 tellopy~=0.6.0
-numpy~=1.22.3
+numpy~=1.21.6
 av~=9.2.0
 opencv-python~=4.5.4.60
 pynput~=1.7.6
 mediapipe~=0.8.9.1
-pandas~=1.4.2
+pandas~=1.3.5
 scikit-learn~=1.0.2
 imutils~=0.5.4
 requests~=2.27.1
