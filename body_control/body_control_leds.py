@@ -482,89 +482,95 @@ class TelloController(object):
         elif shape.lower() == "sad":
             self.drone.send_packet_data("EXT mled g 00pppp000p0000p0p0p00p0pp000000pp00pp00pp0p00p0p0p0000p000pppp00")
 
+    def poses(self, lmList):
+        # Get shoulder width
+        x_rshoulder = lmList[12][1]
+        x_lshoulder = lmList[11][1]
+        shoulders_width = x_lshoulder - x_rshoulder
+        self.shoulders_width = shoulders_width
+
+        # Left Arm angle controls
+        left_arm_angle = findAngle(11, 13, 21, lmList)  # Elbow angle
+        left_arm_angle2 = findAngle(13, 11, 23, lmList)  # Armpit angle
+
+        # Right Arm angle controls
+        right_arm_angle = findAngle(22, 14, 12, lmList)  # Elbow angle
+        right_arm_angle2 = findAngle(24, 12, 14, lmList)  # Armpit angle
+
+        # Roll controls
+        # Raise left arm pose
+        if 180 > left_arm_angle2 > 80:
+            return "LEFT_ARM_UP"
+
+        # Raise right arm pose
+        if 180 > right_arm_angle2 > 80:
+            return "RIGHT_ARM_UP"
+
+        # Cross arms pose
+        if left_arm_angle > 300 and right_arm_angle > 300:
+            return "CROSS_ARMS"
+
+        # Land drone pose
+        l_distx = lmList[15][1] - lmList[11][1]  # Left distance x (from left shoulder and left wrist)
+        l_disty = lmList[15][2] - lmList[11][2]  # Left distance y ...
+
+        r_distx = lmList[16][1] - lmList[12][1]  # Right distance x (from right shoulder and right wrist)
+        r_disty = lmList[16][2] - lmList[12][2]  # Right distance y ...
+
+        ld = abs(l_disty - l_distx)  # Left total distance
+        rd = abs(r_disty - r_distx)  # Right total distance
+
+        # Get right wrist with right shoulder and left wrist with left shoulder together
+        if ld < 100 and rd < 100:
+            self.counter = self.counter + 1
+        else:
+            self.counter = 0
+
+        if self.counter == 3:
+            return "WRIST_SHOULDERS_POSE"
+
+        # Cross wrists
+        distx = lmList[15][1] - lmList[16][1]  # Left distance x (from left wrist and right wrist)
+        disty = lmList[15][2] - lmList[16][2]  # Left distance y ...
+
+        d = abs(disty - distx)
+
+        if d < 80:
+            return "CROSS_WRISTS"
+
+        # Hand kiss
+        distxwr = lmList[11][1] - lmList[12][1]  # Left distance x (from left wrist and right wrist)
+        distywr = lmList[11][2] - lmList[12][2]  # Left distance y ...
+        distxh = lmList[16][1]
+        distyh = lmList[16][2]
+        dwrs = (distywr - distxwr)
+        dh = (distyh - distxh)
+        kiss = abs(dh - dwrs / 2)
+
+        if kiss < 100:
+            return "HAND_KISS"
+
     def check_pose(self, lmList):
         if len(lmList) != 0:
-            # Check if we detect a pose in the body detected by Openpose
-            """
-            left_arm_angle_elbow = detector.findAngle(img, 11, 13, 21, draw=True)  # Izquierda, muñeca, codo, hombro
-            left_arm_angle_armpit = detector.findAngle(img, 13, 11, 23, draw=True)  # Izquierda, codo, hombro, cadera
-            
-            right_arm_angle_elbow = detector.findAngle(img, 22, 14, 12, draw=True)  # Derecho, muñeca, codo, hombro
-            right_arm_angle_armpit = detector.findAngle(img, 24, 12, 14, draw=True)  # Derecho, codo, hombro, cadera
-            """
-            # Left Arm angle controls
-            left_arm_angle = findAngle(11, 13, 21, lmList)  # Elbow angle
-            left_arm_angle2 = findAngle(13, 11, 23, lmList)  # Armpit angle
+            pose = self.poses(lmList)
 
-            # Right Arm angle controls
-            right_arm_angle = findAngle(22, 14, 12, lmList)  # Elbow angle
-            right_arm_angle2 = findAngle(24, 12, 14, lmList)  # Armpit angle
-
-            move_left = False
-            move_right = False
-            heart = False
-            take_pic = False
-            land_drone = False
-
-            # Controlling roll
-            if 180 > left_arm_angle2 > 80:
-                move_right = True
-            if 180 > right_arm_angle2 > 80:
-                move_left = True
-
-            # Take a picture
-            if left_arm_angle > 300 and right_arm_angle > 300:
-                take_pic = True
-
-            # Land drone
-            l_distx = lmList[15][1] - lmList[11][1]  # Left distance x (from left shoulder and left wrist)
-            l_disty = lmList[15][2] - lmList[11][2]  # Left distance y ...
-
-            r_distx = lmList[16][1] - lmList[12][1]  # Right distance x (from right shoulder and right wrist)
-            r_disty = lmList[16][2] - lmList[12][2]  # Right distance y ...
-
-            ld = abs(l_disty - l_distx)  # Left total distance
-            rd = abs(r_disty - r_distx)  # Right total distance
-
-            if ld < 100 and rd < 100:
-                self.counter = self.counter + 1
-            else:
-                self.counter = 0
-
-            if self.counter == 5:
-                land_drone = True
-
-            # Heart shape
-            distx = lmList[15][1] - lmList[16][1]  # Left distance x (from left wrist and right wrist)
-            disty = lmList[15][2] - lmList[16][2]  # Left distance y ...
-
-            d = abs(disty - distx)
-
-            if d < 100:
-                heart = True
-
-            # Get shoulder width
-            x_rshoulder = lmList[12][1]
-            x_lshoulder = lmList[11][1]
-
-            shoulders_width = x_lshoulder - x_rshoulder
-
-            self.shoulders_width = shoulders_width
-
-            if move_left:
-                return "MOVING_LEFT"
-
-            if move_right:
+            if pose == "LEFT_ARM_UP":
                 return "MOVING_RIGHT"
 
-            if heart:
-                return "HEART"
+            if pose == "RIGHT_ARM_UP":
+                return "MOVING_LEFT"
 
-            if take_pic:
+            if pose == "CROSS_ARMS":
                 return "TAKE_PICTURE"
 
-            if land_drone:
+            if pose == "WRIST_SHOULDERS_POSE":
                 return "LAND_DRONE"
+
+            if pose == "HAND_KISS":
+                return "HEART"
+
+            if pose == "CROSS_WRISTS":
+                return "SMILE"
 
         else:
             return None
@@ -639,6 +645,10 @@ class TelloController(object):
                             log.info("HEART")
                             self.display_grid_shape("heart")
 
+                        elif self.pose == "SMILE":
+                            log.info("SMILE")
+                            self.display_grid_shape("smile")
+
                         elif self.pose == "TAKE_PICTURE":
                             # Take a picture in 1 second
                             if self.timestamp_take_picture is None:
@@ -651,6 +661,7 @@ class TelloController(object):
                                 # Landing
                                 self.toggle_tracking(False)
                                 # self.tracking = False
+
                                 self.drone.land()
                                 self.drone.quit()
                                 if self.child_cnx:
