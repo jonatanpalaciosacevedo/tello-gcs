@@ -191,7 +191,7 @@ class TelloController(object):
     """
 
     def __init__(self, use_face_tracking=True, kbd_layout="QWERTY", write_log_data=False,
-                 media_directory="media", child_cnx=None, log_level=None):
+                 media_directory="../body_control/media/", child_cnx=None, log_level=None):
 
         self.log_level = log_level
         self.debug = log_level is not None
@@ -250,6 +250,7 @@ class TelloController(object):
         if not self.use_multiprocessing:
             self.mp = pm.PoseDetector()
         self.use_mediapipe = False
+        self.counter = 0
 
         self.morse = CameraMorse(display=False)
         self.morse.define_command("---", self.delayed_takeoff)
@@ -311,6 +312,7 @@ class TelloController(object):
         self.body_in_prev_frame = False
         self.timestamp_no_body = time.time()
         self.last_rotation_is_cw = True
+        self.counter = 0
 
     def init_drone(self):
         # Connect to the drone, start streaming and subscribe to events
@@ -472,22 +474,31 @@ class TelloController(object):
                                               on_release=self.on_release)
         self.key_listener.start()
 
+    def display_grid_shape(self, shape):
+        if shape.lower() == "heart":
+            self.drone.send_packet_data("EXT mled g 000000000rr00rr0rrrrrrrrrrrrrrrr0rrrrrr000rrrr00000rr00000000000")
+        elif shape.lower() == "smile":
+            self.drone.send_packet_data("EXT mled g 00pppp000p0000p0p0p00p0pp000000pp0p00p0pp00pp00p0p0000p000pppp00")
+        elif shape.lower() == "sad":
+            self.drone.send_packet_data("EXT mled g 00pppp000p0000p0p0p00p0pp000000pp00pp00pp0p00p0p0p0000p000pppp00")
+
     def check_pose(self, lmList):
         if len(lmList) != 0:
             # Check if we detect a pose in the body detected by Openpose
             """
-            left_arm_angle = detector.findAngle(img, 11, 13, 21)  # Brazo izquierdo
-            right_arm_angle = detector.findAngle(img, 22, 14, 12)  # Brazo derecho
-            left_arm_angle2 = detector.findAngle(img, 13, 11, 23)  # Brazo izquierdo
-            right_arm_angle2 = detector.findAngle(img, 24, 12, 14)  # Brazo derecho
+            left_arm_angle_elbow = detector.findAngle(img, 11, 13, 21, draw=True)  # Izquierda, muñeca, codo, hombro
+            left_arm_angle_armpit = detector.findAngle(img, 13, 11, 23, draw=True)  # Izquierda, codo, hombro, cadera
+            
+            right_arm_angle_elbow = detector.findAngle(img, 22, 14, 12, draw=True)  # Derecho, muñeca, codo, hombro
+            right_arm_angle_armpit = detector.findAngle(img, 24, 12, 14, draw=True)  # Derecho, codo, hombro, cadera
             """
             # Left Arm angle controls
             left_arm_angle = findAngle(11, 13, 21, lmList)  # Elbow angle
             left_arm_angle2 = findAngle(13, 11, 23, lmList)  # Armpit angle
 
             # Right Arm angle controls
-            right_arm_angle = findAngle(22, 14, 12, lmList)
-            right_arm_angle2 = findAngle(24, 12, 14, lmList)
+            right_arm_angle = findAngle(22, 14, 12, lmList)  # Elbow angle
+            right_arm_angle2 = findAngle(24, 12, 14, lmList)  # Armpit angle
 
             move_left = False
             move_right = False
@@ -496,24 +507,47 @@ class TelloController(object):
             land_drone = False
 
             # Controlling roll
-            if left_arm_angle2 > 80 and left_arm_angle > 60:
-                heart = True
-            if right_arm_angle2 > 80 and right_arm_angle > 60:
+            if 180 > left_arm_angle2 > 80:
+                move_right = True
+            if 180 > right_arm_angle2 > 80:
                 move_left = True
 
             # Take a picture
-            if 10 > left_arm_angle2 > 270 and 10 > right_arm_angle2 > 270 and left_arm_angle > 270 and right_arm_angle > 270:
+            if left_arm_angle > 300 and right_arm_angle > 300:
                 take_pic = True
 
             # Land drone
-            # if left_arm_angle2 > 80 and left_arm_angle < 60 and right_arm_angle2 > 80 and right_arm_angle > 60:
-            #     land_drone = True
+            l_distx = lmList[15][1] - lmList[11][1]  # Left distance x (from left shoulder and left wrist)
+            l_disty = lmList[15][2] - lmList[11][2]  # Left distance y ...
 
-            # Calcular distancia entre hombros para
-            x_hombro_d = lmList[12][1]
-            x_hombro_i = lmList[11][1]
+            r_distx = lmList[16][1] - lmList[12][1]  # Right distance x (from right shoulder and right wrist)
+            r_disty = lmList[16][2] - lmList[12][2]  # Right distance y ...
 
-            shoulders_width = x_hombro_i - x_hombro_d
+            ld = abs(l_disty - l_distx)  # Left total distance
+            rd = abs(r_disty - r_distx)  # Right total distance
+
+            if ld < 100 and rd < 100:
+                self.counter = self.counter + 1
+            else:
+                self.counter = 0
+
+            if self.counter == 5:
+                land_drone = True
+
+            # Heart shape
+            distx = lmList[15][1] - lmList[16][1]  # Left distance x (from left wrist and right wrist)
+            disty = lmList[15][2] - lmList[16][2]  # Left distance y ...
+
+            d = abs(disty - distx)
+
+            if d < 100:
+                heart = True
+
+            # Get shoulder width
+            x_rshoulder = lmList[12][1]
+            x_lshoulder = lmList[11][1]
+
+            shoulders_width = x_lshoulder - x_rshoulder
 
             self.shoulders_width = shoulders_width
 
@@ -527,10 +561,10 @@ class TelloController(object):
                 return "HEART"
 
             if take_pic:
-                return "TAKING_PICTURE"
+                return "TAKE_PICTURE"
 
             if land_drone:
-                return "LANDING_DORNE"
+                return "LAND_DRONE"
 
         else:
             return None
@@ -603,7 +637,7 @@ class TelloController(object):
 
                         elif self.pose == "HEART":
                             log.info("HEART")
-                            self.drone.send_packet_data("EXT mled g 000000000rr00rr0rrrrrrrrrrrrrrrr0rrrrrr000rrrr00000rr00000000000")
+                            self.display_grid_shape("heart")
 
                         elif self.pose == "TAKE_PICTURE":
                             # Take a picture in 1 second
@@ -615,8 +649,15 @@ class TelloController(object):
                             if not self.palm_landing:
                                 log.info("LANDING on pose")
                                 # Landing
-                                self.toggle_tracking(tracking=False)
+                                self.toggle_tracking(False)
+                                # self.tracking = False
                                 self.drone.land()
+                                self.drone.quit()
+                                if self.child_cnx:
+                                    # Tell to the parent process that it's time to exit
+                                    self.child_cnx.send("EXIT")
+                                cv2.destroyAllWindows()
+                                os._exit(0)
 
                     target = lmList[0]  # Nose landmark
 
