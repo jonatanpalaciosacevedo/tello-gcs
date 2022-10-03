@@ -4,16 +4,10 @@ import pickle
 import cv2
 import numpy as np
 import requests
+from djitellopy import tello
 
 
 def main(video_input: str, ip=None):
-
-    if video_input != "webcam" or video_input != "phone":
-        return "Error, invalid video_input"
-
-    if video_input == "phone":
-        if ip is None:
-            return "Error, if video_input is phone, please enter a valid ip address from ip webcam"
 
     mp_drawing = mp.solutions.drawing_utils  # Drawing helpers
     mp_holistic = mp.solutions.holistic  # Mediapipe Solutions
@@ -31,6 +25,13 @@ def main(video_input: str, ip=None):
         # Takes video camera input to fill file
         cap = cv2.VideoCapture(0)
 
+    if video_input == "drone":
+        drone = tello.Tello()
+        drone.connect()
+        drone.streamon()
+        # drone.takeoff()
+        print(f"Battery: {drone.get_battery()}%")
+
     # Initiate holistic model
     with mp_holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=0.5) as holistic:
         while True:
@@ -41,6 +42,9 @@ def main(video_input: str, ip=None):
 
             if video_input == "webcam":
                 ret, frame = cap.read()
+
+            if video_input == "drone":
+                frame = drone.get_frame_read().frame
 
             # Recolor Feed
             image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -141,6 +145,9 @@ def main(video_input: str, ip=None):
 
 
 if __name__ == "__main__":
-    main(video_input="webcam")
+    # main(video_input="webcam")
 
     # main(video_input="phone", ip="192.168.0.11")
+
+    main(video_input="drone")
+

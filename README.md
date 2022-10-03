@@ -21,7 +21,10 @@ Delete ALL opencv libraries and then only re-install the one in the requirements
 # Requirements:
 
 Tello EDU Drone
+
 Firmware version: 2.05 +
+
+For body_control_leds.py you need the Robomaster TT
 
 ***
 

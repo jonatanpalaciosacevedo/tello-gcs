@@ -214,13 +214,6 @@ def get_only_binary_file(fit_models: dict):
 
 def main(evaluate: bool, video_input: str, ip=None, existing_csv_file=None, class_name=None, new_csv_file=False,
          add_class_only=False):
-    if video_input != "webcam" or video_input != "phone":
-        return "Error, invalid video_input"
-
-    if video_input == "phone":
-        if ip is None:
-            return "Error, if video_input is phone, please enter a valid ip address from ip webcam"
-
     if add_class_only:
         """Only adds data to the csv file to make it faster and load many data at once"""
         # Add data to existing file
@@ -319,11 +312,11 @@ if __name__ == "__main__":
     # main(new_csv_file=True, evaluate=False, class_name="Normal", video_input="phone", ip="192.168.0.11")
 
     # If csv file already exists
-    main(existing_csv_file="../modules/coords.csv", evaluate=False, class_name="Sonriendo", add_class_only=False, video_input="phone", ip="192.168.0.11")
+    # main(existing_csv_file="../modules/coords.csv", evaluate=False, class_name="Normal", add_class_only=False, video_input="webcam", ip="192.168.0.11")
 
     # To just add data to the csv and update binary file later (to make it faster)
-    # main(existing_csv_file="../modules/coords.csv", evaluate=False, class_name="<3", add_class_only=True, video_input="webcam", ip="192.168.0.11")
+    # main(existing_csv_file="../modules/coords.csv", evaluate=False, class_name="Sonriendo", add_class_only=True, video_input="webcam", ip="192.168.0.11")
 
     # To just train and test the models and get the binary files (if you have previously added a class only)
-    # main(existing_csv_file="../modules/coords.csv", evaluate=False, add_class_only=False, video_input="phone", ip="192.168.0.11")
+    main(existing_csv_file="../modules/coords.csv", evaluate=False, add_class_only=False, video_input="phone", ip="192.168.0.11")
 
