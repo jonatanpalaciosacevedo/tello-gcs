@@ -21,15 +21,6 @@ import sys
 
 log = logging.getLogger("TelloMediapipe")
 
-"""
-
-MODIFICAR LOCK DISTANCE MODE
-REVISAR TAKE PICTURE
-REVISAR LAND DRONE
-
-"""
-
-
 def mediapipe_worker():
     """
     When multiprocessing, this is the init and main loop of the child process
