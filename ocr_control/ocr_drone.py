@@ -56,7 +56,7 @@ time.sleep(2.0)
 cntr = 0
 detecting = False
 
-drone.takeoff()
+# drone.takeoff()
 
 # loop over frames from the video stream
 while True:
@@ -76,7 +76,7 @@ while True:
     # convert the frame to grayscale and detect if the frame is
     # considered blurry or not
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    (mean, blurry) = detect_blur_fft(gray, thresh=7)
+    (mean, blurry) = detect_blur_fft(gray, thresh=5)
 
     # Show stats
     color = (0, 255, 0)
@@ -137,7 +137,7 @@ while True:
 
     # if the 'q' key was pressed, break from the loop
     if key == ord("q"):
-        drone.land()
+        # drone.land()
         drone.streamoff()
         break
 

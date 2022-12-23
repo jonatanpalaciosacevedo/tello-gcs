@@ -10,7 +10,7 @@ mp_drawing = mp.solutions.drawing_utils  # Drawing helpers
 mp_holistic = mp.solutions.holistic  # Mediapipe Solutions
 
 # Replace the below URL with your own. Make sure to add "/shot.jpg" at last.
-url = "http://192.168.0.22:8080/shot.jpg"
+url = "http://192.168.0.19:8080/shot.jpg"
 
 with open('../modules/body_language.pkl', 'rb') as f:
     model = pickle.load(f)

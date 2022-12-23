@@ -145,9 +145,9 @@ def main(video_input: str, ip=None):
 
 
 if __name__ == "__main__":
-    # main(video_input="webcam")
+    main(video_input="webcam")
 
     # main(video_input="phone", ip="192.168.0.11")
 
-    main(video_input="drone")
+    # main(video_input="drone")
 

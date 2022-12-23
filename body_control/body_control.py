@@ -313,6 +313,7 @@ class TelloController(object):
     def init_drone(self):
         # Connect to the drone, start streaming and subscribe to events
         self.drone.connect()
+        self.drone.wait_for_connection(10.0)
         self.set_video_encoder_rate(2)
         self.drone.start_video()
         self.drone.subscribe(self.drone.EVENT_FLIGHT_DATA,

@@ -3,11 +3,11 @@
 
 # Scrips to help with color detection
 /modules/colors.csv
-/video_color_detection.py
+/beta_testing/video_color_detection.py
 
 # Unfinished
-/drones.dat
-/bottom_camera.py
-/swarm_connect.py
-/robomaster.py
-/robomastertt.py
+/beta_testing/drones.dat
+/beta_testing/bottom_camera.py
+/beta_testing/swarm_connect.py
+/beta_testing/robomaster.py
+/beta_testing/robomastertt.py

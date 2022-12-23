@@ -8,21 +8,9 @@ from modules import pose_module as pm
 from simple_pid import PID
 
 
-def conversion(old_value):
-    # OldRange = (OldMax - OldMin)
-    # NewRange = (NewMax - NewMin)
-    # NewValue = (((OldValue - OldMin) * NewRange) / OldRange) + NewMin
-
-    old_max = 100
-    old_min = -100
-    new_max = 30
-    new_min = 20
-    old_range = old_max - old_min
-    new_range = new_max - new_min
-
-    new_value = ((old_value - old_min) * new_range / old_range) + new_min
-
-    return new_value
+def put_text(frame, text, pos):
+    cv2.putText(frame, text, (0, 30 + (pos * 30)),
+                cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255, 255, 255), 2)
 
 
 class TelloController:
@@ -32,17 +20,13 @@ class TelloController:
         self.drone = tellopy.Tello()
         self.flying = False
         self.detecting = False
-        self.rotate = False
-        self.body_in_prev_frame = False
 
         # Detection values
         self.detector = pm.PoseDetector()
         self.pid_yaw = PID(0.25, 0, 0, setpoint=0, output_limits=(-100, 100))
         self.pid_throttle = PID(0.4, 0, 0, setpoint=0, output_limits=(-80, 100))
         self.pid_pitch = PID(0.4, 0, 0, setpoint=0, output_limits=(-50, 50))
-        self.pid_roll = PID(0.35, 0, 0, setpoint=0, output_limits=(-80, 80))
-        self.roll_speed_value = None
-        self.throttle_speed_value = None
+        self.pid_roll = PID(0.2, 0, 0.1, setpoint=0, output_limits=(-100, 100))
 
         # Init drone
         self.battery = None
@@ -57,9 +41,6 @@ class TelloController:
         self.cmd_axis_speed = {"yaw": 0, "roll": 0, "pitch": 0, "throttle": 0}
         self.prev_axis_speed = self.axis_speed.copy()
 
-        # Other variables
-        self.target = None
-
     def init_drone(self):
         # Connect to the drone, start video
         self.drone.connect()
@@ -67,29 +48,16 @@ class TelloController:
         self.drone.start_video()
         self.drone.subscribe(self.drone.EVENT_FLIGHT_DATA,
                              self.flight_data_handler)
-        if self.battery:
-            print(f"Battery: {self.battery}%")
 
     def flight_data_handler(self, event, sender, data):
-        """
-            Listener to flight data from the drone.
-        """
         self.battery = data.battery_percentage
 
-    def spin_360(self):
-        self.axis_speed["right"] = 0
-        self.axis_speed["left"] = 0
-        self.axis_speed["up"] = 0
-        self.axis_speed["down"] = 0
-        self.drone.rotate_clockwise(1)
-
     def speed_controller(self, raw_frame):
-
-        if self.rotate:
-            self.spin_360()
-
         if cv2.waitKey(1) & 0xFF == ord("q"):
             self.quit()
+
+        if cv2.waitKey(1) & 0xFF == ord("l"):
+            self.drone.land()
 
         if cv2.waitKey(1) & 0xFF == ord("t"):
             self.flying = not self.flying
@@ -117,22 +85,29 @@ class TelloController:
                 target = lmList[0]  # Nose landmark
 
                 if target:
-                    self.body_in_prev_frame = True
-                    self.rotate = False
+                    # Calculate the xoff and yoff values for the PID controller
                     xoff = int(lmList[0][1] - ref_x)
                     yoff = int(ref_y - lmList[0][2])
 
+                    # Calculate distance between shoulders to controll PITCH
+                    right_shoulder_x = lmList[12][1]
+                    left_shoulder_x = lmList[11][1]
+                    shoulders_width = left_shoulder_x - right_shoulder_x
+                    self.shoulders_width = shoulders_width
+                    proximity = int(w / 3.1)
+                    self.keep_distance = proximity
+
+                    # Draw arrow to the nose to show the distance correction needed
                     cv2.circle(frame, (ref_x, ref_y), 15, (250, 150, 0), 1, cv2.LINE_AA)
                     cv2.arrowedLine(frame, (ref_x, ref_y), (target[1], target[2]), (250, 150, 0), 5)
 
-                    ############################# FACE TRACKING #############################
-                    # PID CONTROLLERS CALCULATE NEW SPEEDS FOR YAW AND THROTTLE
+                    # Face tracking PID controller
                     self.axis_speed["roll"] = int(-self.pid_roll(xoff))
                     self.axis_speed["throttle"] = int(-self.pid_throttle(yoff))
+                    self.axis_speed["pitch"] = int(self.pid_pitch(self.shoulders_width - self.keep_distance))
 
+        # Send commands to the drone
         if self.flying:
-            # cv2.putText(frame, f"RIGHT: {str(roll_speed_value)}", (0, 30 + (i * 30)),
-            #             cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255, 255, 2555), 2)
             for axis, command in self.axis_command.items():
                 if self.axis_speed[axis] is not None and self.axis_speed[axis] != self.prev_axis_speed[axis]:
                     command(self.axis_speed[axis])
@@ -141,11 +116,30 @@ class TelloController:
                     # This line is necessary to display current values in 'self.^'
                     self.axis_speed[axis] = self.prev_axis_speed[axis]
 
+        # Draw on HUD
+        self.draw(frame)
+
         return frame
+
+    def draw(self, frame):
+        bat = f"BAT: {int(self.battery)}"
+        if self.axis_speed["throttle"] > 0:
+            thr = f"UP: {int(self.axis_speed['throttle'])}"
+        else:
+            thr = f"DOWN: {int(self.axis_speed['throttle'])}"
+        if self.axis_speed["roll"] > 0:
+            roll = f"RIGHT: {int(self.axis_speed['throttle'])}"
+        else:
+            roll = f"LEFT: {int(self.axis_speed['throttle'])}"
+
+        put_text(frame, bat, 0)
+        put_text(frame, thr, 1)
+        put_text(frame, roll, 2)
 
     def quit(self):
         if self.flying:
             self.drone.land()
+            self.flying = False
 
         self.drone.quit()
         cv2.destroyAllWindows()
@@ -164,8 +158,6 @@ def main():
         start_time = time.time()
         image = cv2.cvtColor(np.array(frame.to_image()), cv2.COLOR_RGB2BGR)
         image = CONTROLLER.speed_controller(image)
-        #cv2.putText(frame, f"BAT: {CONTROLLER.battery}", (0, 30 + (0 * 30)),
-         #           cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255, 255, 2555), 2)
 
         cv2.imshow('TELLO', image)
 
@@ -178,7 +170,4 @@ def main():
 
 
 if __name__ == '__main__':
-    print("Press 't' to takeoff")
-    print("Press 'd' to start detecting")
-    print("Press 'q' to start stop")
     main()
