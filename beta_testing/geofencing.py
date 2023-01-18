@@ -6,8 +6,6 @@ import time
 import os
 import numpy as np
 from pynput import keyboard
-from modules import pose_module as pm
-from simple_pid import PID
 
 
 def put_text(frame, text, pos):
@@ -17,6 +15,9 @@ def put_text(frame, text, pos):
 
 class TelloController:
     def __init__(self):
+        self.key_listener = None
+        self.controls_keyrelease = None
+        self.controls_keypress = None
         self.keydown = False
         self.fly_speed = None
         self.fly_time = None
@@ -60,9 +61,17 @@ class TelloController:
         frame = imutils.resize(frame, height=480, width=640)
         h, w, _ = frame.shape
 
-        for axis, command in self.axis_command.items():
+        """for axis, command in self.axis_command.items():
             if self.axis_speed[axis] is not None:
+                command(self.cmd_axis_speed[axis])"""
+
+        for axis, command in self.axis_command.items():
+            if self.axis_speed[axis] is not None and self.cmd_axis_speed[axis] != self.prev_axis_speed[axis]:
                 command(self.cmd_axis_speed[axis])
+                self.prev_axis_speed[axis] = self.cmd_axis_speed[axis]
+            else:
+                # This line is necessary to display current values in 'self.^'
+                self.cmd_axis_speed[axis] = self.prev_axis_speed[axis]
 
         # Draw on HUD
         self.draw(frame)
@@ -72,16 +81,16 @@ class TelloController:
     def draw(self, frame):
         bat = f"BAT: {int(self.battery)}"
 
-        t = int(self.fly_time)/10
+        """t = int(self.fly_time)/10
         if t < 60:
             fly_time = f"FLYING: {t} "
         else:
             s = round(((t / 60) % 1) * 60)
             m = int(t/60)
-            fly_time = f"FLYING: {m}:{s}"
+            fly_time = f'FLYING: {m}:{s}'"""
 
         put_text(frame, bat, 0)
-        put_text(frame, fly_time, 1)
+        # put_text(frame, fly_time, 1)
         put_text(frame, f"NORTH SPEED: {self.north_speed}", 2)
         put_text(frame, f"EAST SPEED: {self.east_speed}", 3)
         put_text(frame, f"GROUND SPEED: {self.ground_speed}", 4)
@@ -183,7 +192,7 @@ def main():
         start_time = time.time()
         image = cv2.cvtColor(np.array(frame.to_image()), cv2.COLOR_RGB2BGR)
         image = CONTROLLER.process_frame(image)
-        print(f"{CONTROLLER.ground_speed}")
+        # print(f"{CONTROLLER.ground_speed}")
 
         cv2.imshow('TELLO', image)
 
