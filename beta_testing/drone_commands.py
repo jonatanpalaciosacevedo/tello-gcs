@@ -49,4 +49,5 @@ def main():
 if __name__ == '__main__':
     main()
 
-
+# go 20 0 0 10 m1
+# go 0 0 0 10 m1
