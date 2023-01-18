@@ -85,7 +85,7 @@ class TelloController:
                 target = lmList[0]  # Nose landmark
 
                 if target:
-                    # Calculate the xoff and yoff values for the PID controller
+                    # Calculate the xoff and yoff values for the PID controller (ROLL)
                     xoff = int(lmList[0][1] - ref_x)
                     yoff = int(ref_y - lmList[0][2])
 
