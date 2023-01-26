@@ -30,7 +30,7 @@ pytesseract.pytesseract.tesseract_cmd = r'/usr/local/Cellar/tesseract/5.2.0/bin/
 
 
 # Replace the below URL with your own. Make sure to add "/shot.jpg" at last.
-url = "http://192.168.0.19:8080/shot.jpg"
+url = "http://192.168.0.16:8080/shot.jpg"
 
 # create a named window for our output OCR visualization (a named
 # window is required here so that we can automatically position it
@@ -87,7 +87,7 @@ while True:
         if (cntr % 20) == 0:
             img_h, img_w, _ = frame.shape
             x1, y1, w1, h1 = 0, 0, img_h, img_w
-            imgchar = pytesseract.image_to_string(frame, lang="eng+equ", config="--psm 10")
+            imgchar = pytesseract.image_to_string(frame, lang="eng", config="--psm 10")
             # imgchar = pytesseract.image_to_string(frame, lang='equ', config='--psm 1 --oem 3')
 
             imgboxes = pytesseract.image_to_boxes(frame)
