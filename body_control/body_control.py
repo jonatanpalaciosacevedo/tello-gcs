@@ -541,7 +541,7 @@ class TelloController(object):
                 return "TAKING_PICTURE"
 
             if land_drone:
-                return "LANDING_DORNE"
+                return "LANDING_DRONE"
 
             if dist < 150 and right_arm_angle2 > 90 and left_arm_angle2 > 90:
                 return "UNLOCK_DISTANCE"
