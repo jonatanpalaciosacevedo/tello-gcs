@@ -128,9 +128,9 @@ class TelloController:
         else:
             thr = f"DOWN: {int(self.axis_speed['throttle'])}"
         if self.axis_speed["roll"] > 0:
-            roll = f"RIGHT: {int(self.axis_speed['throttle'])}"
+            roll = f"RIGHT: {int(self.axis_speed['roll'])}"
         else:
-            roll = f"LEFT: {int(self.axis_speed['throttle'])}"
+            roll = f"LEFT: {int(self.axis_speed['roll'])}"
 
         put_text(frame, bat, 0)
         put_text(frame, thr, 1)
