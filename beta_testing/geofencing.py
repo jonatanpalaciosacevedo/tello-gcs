@@ -3,9 +3,9 @@ import cv2
 import tellopy
 import av
 import time
-import os
 import numpy as np
-from pynput import keyboard
+from modules import pose_module as pm
+from simple_pid import PID
 
 
 def put_text(frame, text, pos):
@@ -15,63 +15,111 @@ def put_text(frame, text, pos):
 
 class TelloController:
     def __init__(self):
-        self.key_listener = None
-        self.controls_keyrelease = None
-        self.controls_keypress = None
-        self.keydown = False
-        self.fly_speed = None
-        self.fly_time = None
-        self.ground_speed = None
-        self.east_speed = None
-        self.north_speed = None
-        self.height = None
-        self.battery = None
-        self.drone = tellopy.Tello()
-        self.init_drone()
 
+        # Drone state
+        self.drone = tellopy.Tello()
+        self.flying = False
+        self.detecting = False
+
+        # Detection values
+        self.detector = pm.PoseDetector()
+        self.pid_yaw = PID(0.25, 0, 0, setpoint=0, output_limits=(-100, 100))
+        self.pid_throttle = PID(0.4, 0, 0, setpoint=0, output_limits=(-80, 100))
+        self.pid_pitch = PID(0.4, 0, 0, setpoint=0, output_limits=(-50, 50))
+        self.pid_roll = PID(0.2, 0, 0.1, setpoint=0, output_limits=(-100, 100))
+
+        # Init drone
+        self.battery = None
+        self.north = None
+        self.east = None
+
+        self.init_drone()
         self.axis_command = {
             "yaw": self.drone.clockwise,
             "roll": self.drone.right,
             "pitch": self.drone.forward,
             "throttle": self.drone.up
         }
-        self.axis_speed = {"yaw": 0, "roll": 0, "pitch": 0, "throttle": 0}
+        self.axis_movement = {"yaw": 0, "roll": 0, "pitch": 0, "throttle": 0}
         self.cmd_axis_speed = {"yaw": 0, "roll": 0, "pitch": 0, "throttle": 0}
-        self.prev_axis_speed = self.axis_speed.copy()
-        self.def_speed = {"yaw": 50, "roll": 50, "pitch": 50, "throttle": 80}
+        self.prev_axis_speed = self.axis_movement.copy()
+
+    def move_command(self, x, y, z, speed, pad):
+        self.drone.send_packet_data(f"go {x} {y} {z} {speed} {pad}"),
 
     def init_drone(self):
+        # Connect to the drone, start video
         self.drone.connect()
-        self.drone.wait_for_connection(10.0)
+        self.drone.wait_for_connection(20.0)
         self.drone.start_video()
-        self.init_controls()
-        self.drone.subscribe(self.drone.EVENT_FLIGHT_DATA, self.flight_data_handler)
+        self.drone.subscribe(self.drone.EVENT_FLIGHT_DATA,
+                             self.flight_data_handler)
 
     def flight_data_handler(self, event, sender, data):
         self.battery = data.battery_percentage
-        self.height = data.height
-        self.north_speed = data.north_speed
-        self.east_speed = data.east_speed
-        self.ground_speed = data.ground_speed
-        self.fly_time = data.fly_time
-        self.fly_speed = data.fly_speed
+        self.north = data.north_speed
+        self.east = data.east_speed
 
-    def process_frame(self, raw_frame):
+    def speed_controller(self, raw_frame):
+        if cv2.waitKey(1) & 0xFF == ord("q"):
+            self.quit()
+
+        if cv2.waitKey(1) & 0xFF == ord("l"):
+            self.drone.land()
+
+        if cv2.waitKey(1) & 0xFF == ord("t"):
+            self.flying = not self.flying
+            if self.flying:
+                self.drone.takeoff()
+            else:
+                self.drone.land()
+
+        if cv2.waitKey(1) & 0xFF == ord("d"):
+            self.detecting = not self.detecting
+            print(f"Detecting = {self.detecting}")
+
         frame = raw_frame.copy()
         frame = imutils.resize(frame, height=480, width=640)
         h, w, _ = frame.shape
 
-        """for axis, command in self.axis_command.items():
-            if self.axis_speed[axis] is not None:
-                command(self.cmd_axis_speed[axis])"""
+        ref_x = int(w / 2)
+        ref_y = int(h * 0.4)
 
-        for axis, command in self.axis_command.items():
-            if self.axis_speed[axis] is not None and self.cmd_axis_speed[axis] != self.prev_axis_speed[axis]:
-                command(self.cmd_axis_speed[axis])
-                self.prev_axis_speed[axis] = self.cmd_axis_speed[axis]
-            else:
-                # This line is necessary to display current values in 'self.^'
-                self.cmd_axis_speed[axis] = self.prev_axis_speed[axis]
+        if self.detecting:
+            frame = self.detector.findPose(frame, draw=True)
+            lmList = self.detector.findPosition(frame, draw=True)
+
+            if len(lmList) != 0:
+                target = lmList[0]  # Nose landmark
+
+                if target:
+                    # Calculate the xoff and yoff values for the PID controller (ROLL)
+                    xoff = int(lmList[0][1] - ref_x)
+                    yoff = int(ref_y - lmList[0][2])
+
+                    # Calculate distance between shoulders to controll PITCH
+                    right_shoulder_x = lmList[12][1]
+                    left_shoulder_x = lmList[11][1]
+                    shoulders_width = left_shoulder_x - right_shoulder_x
+                    self.shoulders_width = shoulders_width
+                    proximity = int(w / 3.1)
+                    self.keep_distance = proximity
+
+                    # Draw arrow to the nose to show the distance correction needed
+                    cv2.circle(frame, (ref_x, ref_y), 15, (250, 150, 0), 1, cv2.LINE_AA)
+                    cv2.arrowedLine(frame, (ref_x, ref_y), (target[1], target[2]), (250, 150, 0), 5)
+
+                    # Face tracking PID controller
+                    if self.axis_movement["roll"] + int(-self.pid_roll(xoff)) > 0:
+                        self.axis_movement["roll"] = self.axis_movement["roll"] + int(-self.pid_roll(xoff))
+                    elif (self.axis_movement["throttle"] + int(-self.pid_throttle(yoff))) > 0:
+                        self.axis_movement["throttle"] = self.axis_movement["throttle"] + int(-self.pid_throttle(yoff))
+                    elif (self.axis_movement["pitch"] + int(self.pid_pitch(self.shoulders_width - self.keep_distance))) > 0:
+                        self.axis_movement["pitch"] = self.axis_movement["pitch"] + int(self.pid_pitch(self.shoulders_width - self.keep_distance))
+
+        # Send commands to the drone
+        if self.detecting:
+            self.move_command(self.axis_movement["pitch"], 0, 80, 50, "m1")
 
         # Draw on HUD
         self.draw(frame)
@@ -80,103 +128,26 @@ class TelloController:
 
     def draw(self, frame):
         bat = f"BAT: {int(self.battery)}"
-
-        """t = int(self.fly_time)/10
-        if t < 60:
-            fly_time = f"FLYING: {t} "
+        if self.axis_movement["throttle"] > 0:
+            thr = f"UP: {int(self.axis_movement['throttle'])}"
         else:
-            s = round(((t / 60) % 1) * 60)
-            m = int(t/60)
-            fly_time = f'FLYING: {m}:{s}'"""
+            thr = f"DOWN: {int(self.axis_movement['throttle'])}"
+        if self.axis_movement["roll"] > 0:
+            roll = f"RIGHT: {int(self.axis_movement['throttle'])}"
+        else:
+            roll = f"LEFT: {int(self.axis_movement['throttle'])}"
 
         put_text(frame, bat, 0)
-        # put_text(frame, fly_time, 1)
-        put_text(frame, f"NORTH SPEED: {self.north_speed}", 2)
-        put_text(frame, f"EAST SPEED: {self.east_speed}", 3)
-        put_text(frame, f"GROUND SPEED: {self.ground_speed}", 4)
-        put_text(frame, f"FLY SPEED: {self.fly_speed}", 5)
+        put_text(frame, thr, 1)
+        put_text(frame, roll, 2)
 
-    def on_press(self, keyname):
-        """
-            Handler for keyboard listener
-        """
-        if self.keydown:
-            return
-        try:
-            self.keydown = True
-            keyname = str(keyname).strip('\'')
-            if keyname == 'Key.esc':
-                # self.tracking = False
-                self.drone.land()
-                self.drone.quit()
-                cv2.destroyAllWindows()
-                os._exit(0)
-            if keyname in self.controls_keypress:
-                self.controls_keypress[keyname]()
-        except AttributeError:
-            pass
+    def quit(self):
+        if self.flying:
+            self.drone.land()
+            self.flying = False
 
-    def on_release(self, keyname):
-        """
-            Reset on key up from keyboard listener
-        """
-        self.keydown = False
-        keyname = str(keyname).strip('\'')
-        if keyname in self.controls_keyrelease:
-            key_handler = self.controls_keyrelease[keyname]()
-
-    def set_speed(self, axis, speed):
-        self.cmd_axis_speed[axis] = speed
-
-    def init_controls(self):
-        """
-            Define keys and add listener
-        """
-
-        controls_keypress_QWERTY = {
-            'w': lambda: self.set_speed("pitch", self.def_speed["pitch"]),
-            's': lambda: self.set_speed("pitch", -self.def_speed["pitch"]),
-            'a': lambda: self.set_speed("roll", -self.def_speed["roll"]),
-            'd': lambda: self.set_speed("roll", self.def_speed["roll"]),
-            'q': lambda: self.set_speed("yaw", -self.def_speed["yaw"]),
-            'e': lambda: self.set_speed("yaw", self.def_speed["yaw"]),
-            'i': lambda: self.drone.flip_forward(),
-            'k': lambda: self.drone.flip_back(),
-            'j': lambda: self.drone.flip_left(),
-            'l': lambda: self.drone.flip_right(),
-            'Key.left': lambda: self.set_speed("yaw", -1.5 * self.def_speed["yaw"]),
-            'Key.right': lambda: self.set_speed("yaw", 1.5 * self.def_speed["yaw"]),
-            'Key.up': lambda: self.set_speed("throttle", self.def_speed["throttle"]),
-            'Key.down': lambda: self.set_speed("throttle", -self.def_speed["throttle"]),
-            'Key.tab': lambda: self.drone.takeoff(),
-            'Key.backspace': lambda: self.drone.land(),
-            '0': lambda: self.drone.set_video_encoder_rate(0),
-            '1': lambda: self.drone.set_video_encoder_rate(1),
-            '2': lambda: self.drone.set_video_encoder_rate(2),
-            '3': lambda: self.drone.set_video_encoder_rate(3),
-            '4': lambda: self.drone.set_video_encoder_rate(4),
-            '5': lambda: self.drone.set_video_encoder_rate(5),
-        }
-
-        controls_keyrelease_QWERTY = {
-            'w': lambda: self.set_speed("pitch", 0),
-            's': lambda: self.set_speed("pitch", 0),
-            'a': lambda: self.set_speed("roll", 0),
-            'd': lambda: self.set_speed("roll", 0),
-            'q': lambda: self.set_speed("yaw", 0),
-            'e': lambda: self.set_speed("yaw", 0),
-            'Key.left': lambda: self.set_speed("yaw", 0),
-            'Key.right': lambda: self.set_speed("yaw", 0),
-            'Key.up': lambda: self.set_speed("throttle", 0),
-            'Key.down': lambda: self.set_speed("throttle", 0)
-        }
-
-        self.controls_keypress = controls_keypress_QWERTY
-        self.controls_keyrelease = controls_keyrelease_QWERTY
-
-        self.key_listener = keyboard.Listener(on_press=self.on_press,
-                                              on_release=self.on_release)
-        self.key_listener.start()
+        self.drone.quit()
+        cv2.destroyAllWindows()
 
 
 def main():
@@ -191,8 +162,7 @@ def main():
             continue
         start_time = time.time()
         image = cv2.cvtColor(np.array(frame.to_image()), cv2.COLOR_RGB2BGR)
-        image = CONTROLLER.process_frame(image)
-        # print(f"{CONTROLLER.ground_speed}")
+        image = CONTROLLER.speed_controller(image)
 
         cv2.imshow('TELLO', image)
 
