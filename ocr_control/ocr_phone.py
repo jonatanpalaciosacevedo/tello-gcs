@@ -26,7 +26,7 @@ pytesseract.pytesseract.tesseract_cmd = r'../modules/tesseractwin/tesseract.exe'
 # pytesseract.pytesseract.tesseract_cmd = r'/usr/local/bin/tesseract'
 
 # Or here (my case):
-# pytesseract.pytesseract.tesseract_cmd = r'/usr/local/Cellar/tesseract/5.2.0/bin/tesseract'  # Depending on the version of tesseract
+# pytesseract.pytesseract.tesseract_cmd = r'/usr/local/Cellar/tesseract/5.3.0_1/bin/tesseract'  # Depending on the version of tesseract
 
 
 # Replace the below URL with your own. Make sure to add "/shot.jpg" at last.
