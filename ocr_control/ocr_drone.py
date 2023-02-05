@@ -20,13 +20,13 @@ import os
 # ---------------
 
 # For Windows, the folder is already installed in this project (easier):
-# pytesseract.pytesseract.tesseract_cmd = r'../modules/tesseractwin/tesseract.exe'
+pytesseract.pytesseract.tesseract_cmd = r'../modules/tesseractwin/tesseract.exe'
 
 # For mac users you have to install tesseract using Homebrew and the path is usually here:
 # pytesseract.pytesseract.tesseract_cmd = r'/usr/local/bin/tesseract'
 
 # Or here:
-pytesseract.pytesseract.tesseract_cmd = r'/usr/local/Cellar/tesseract/5.2.0/bin/tesseract'  # Depending on the version of tesseract
+# pytesseract.pytesseract.tesseract_cmd = r'/usr/local/Cellar/tesseract/5.2.0/bin/tesseract'  # Depending on the version of tesseract
 
 
 # Connect via AP Mode
