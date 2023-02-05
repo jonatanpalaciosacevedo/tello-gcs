@@ -3,7 +3,6 @@
 [Work in progress]
 
 Various applications for the Tello Drone. 
-Working on making it compatible with macOs and Windows as well.
 
 ***
 # Current bugs 
@@ -11,7 +10,7 @@ Working on making it compatible with macOs and Windows as well.
 OpenCV:
 When installing libraries with requirements.txt, it installs more than one opencv library, making it unusable.
 
-Current (temporary) solution:
+Solution:
 
 Delete ALL opencv libraries and then only re-install the one in the requirements.txt (That version is the only one that works, later versions also have bugs with the code)
 
