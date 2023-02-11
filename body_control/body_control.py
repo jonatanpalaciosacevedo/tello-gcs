@@ -691,7 +691,7 @@ class TelloController(object):
         else:
             hud.add("NOT FLYING", (0, 0, 255))
         hud.add(f"TRACKING {'ON' if self.tracking else 'OFF'}", (0, 255, 0) if self.tracking else (0, 0, 255))
-        hud.add(f"EXPO {self.exposure}")
+        # hud.add(f"EXPO {self.exposure}")
 
         if self.axis_speed['yaw'] > 0:
             hud.add(f"CW {self.axis_speed['yaw']}", (0, 255, 0))
