@@ -603,7 +603,7 @@ class TelloController(object):
                     target = lmList[0]  # Nose landmark
 
                 ref_x = int(w / 2)
-                ref_y = int(h * 0.3)
+                ref_y = int(h * 0.25)
 
                 if self.tracking:
                     if target:
