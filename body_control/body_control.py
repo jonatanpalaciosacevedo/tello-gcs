@@ -19,14 +19,6 @@ import sys
 
 log = logging.getLogger("TelloMediapipe")
 
-"""
-
-MODIFICAR LOCK DISTANCE MODE
-REVISAR TAKE PICTURE
-REVISAR LAND DRONE
-
-"""
-
 
 def mediapipe_worker():
     """
@@ -480,49 +472,38 @@ class TelloController(object):
             left_arm_angle2 = detector.findAngle(img, 13, 11, 23)  # Brazo izquierdo
             right_arm_angle2 = detector.findAngle(img, 24, 12, 14)  # Brazo derecho
             """
-            # Left Arm angle controls roll
+            # Arms control roll
             left_arm_angle = findAngle(11, 13, 21, lmList)
             left_arm_angle2 = findAngle(13, 11, 23, lmList)
-            move_left = False
-            move_right = False
-            move_forward = False
-            move_backward = False
-            take_pic = False
-            land_drone = False
 
-            if left_arm_angle2 > 80 and left_arm_angle < 60:
-                move_left = True
-            if left_arm_angle2 > 80 and 180 > left_arm_angle > 100:
-                move_right = True
-
-            # Right Arm angle controls pitch
             right_arm_angle = findAngle(22, 14, 12, lmList)
             right_arm_angle2 = findAngle(24, 12, 14, lmList)
 
-            if right_arm_angle2 > 80 and right_arm_angle < 60:
-                move_forward = True
-            if right_arm_angle2 > 80 and 180 > right_arm_angle > 100:
-                move_backward = True
+            move_left = False
+            move_right = False
+            take_pic = False
+            land_drone = False
 
-            if left_arm_angle2 > 270 and right_arm_angle2 > 270 and left_arm_angle > 270 and right_arm_angle > 270:
+            # Left arm up at around 90+ degrees with body, the drone moves to its right
+            if 110 > left_arm_angle2 > 80 and 180 > left_arm_angle > 100:
+                move_right = True
+
+            # Right arm up at around 90+ degrees with body, the drone moves to its left
+            if 110 > right_arm_angle2 > 80 and 180 > right_arm_angle > 100:
+                move_left = True
+
+            # Arms up and elbows folded
+            if 110 > right_arm_angle2 > 80 and right_arm_angle < 50 and 110 > left_arm_angle2 > 80 and left_arm_angle < 50:
                 take_pic = True
 
-            if 70 < left_arm_angle < 130 and 70 < right_arm_angle < 130 and left_arm_angle2 < 30 and right_arm_angle2 < 30:
+            # Wrists cross over head
+            if left_arm_angle2 > 135 and 180 > left_arm_angle > 100 and right_arm_angle2 > 135 and 180 > right_arm_angle > 100:
                 land_drone = True
 
-            # Hands touching controls keep distance mode
-            x1 = lmList[15][1]
-            y1 = lmList[15][2]
-            x2 = lmList[16][1]
-            y2 = lmList[16][2]
-            dist = findDistance(x1, y1, x2, y2)
-
-            # Calcular distancia entre hombros para
-            x_hombro_d = lmList[12][1]
-            x_hombro_i = lmList[11][1]
-
-            shoulders_width = x_hombro_i - x_hombro_d
-
+            # Calculates shoulder distance to keep distance
+            right_shoulder_x = lmList[12][1]
+            left_shoulder_x = lmList[11][1]
+            shoulders_width = left_shoulder_x - right_shoulder_x
             self.shoulders_width = shoulders_width
 
             if move_left:
@@ -531,20 +512,11 @@ class TelloController(object):
             if move_right:
                 return "MOVING_RIGHT"
 
-            if move_forward:
-                return "MOVING_FORWARD"
-
-            if move_backward:
-                return "MOVING_BACKWARD"
-
             if take_pic:
                 return "TAKING_PICTURE"
 
             if land_drone:
                 return "LANDING_DRONE"
-
-            if dist < 150 and right_arm_angle2 > 90 and left_arm_angle2 > 90:
-                return "UNLOCK_DISTANCE"
 
         else:
             return None
@@ -614,14 +586,6 @@ class TelloController(object):
                         elif self.pose == "MOVING_LEFT":
                             log.info("GOING RIGHT from pose")
                             self.axis_speed["roll"] = -self.def_speed["roll"]
-
-                        # elif self.pose == "MOVING_FORWARD":
-                        #     log.info("GOING TOWARDS pose")
-                        #     self.axis_speed["pitch"] = self.def_speed["pitch"]
-                        #
-                        # elif self.pose == "MOVING_BACKWARD":
-                        #     log.info("GOING AWAY pose")
-                        #     self.axis_speed["pitch"] = -self.def_speed["pitch"]
 
                         elif self.pose == "TAKING_PICTURE":
                             # Take a picture in 1 second
@@ -871,7 +835,7 @@ class TelloController(object):
 
     def log_data_handler(self, event, sender, data):
         """
-            Listener to log data from the drone.
+            Listener to log data from the drone. CURRENTLY NOT WORKING
         """
         pos_x = -data.mvo.pos_x
         pos_y = -data.mvo.pos_y
